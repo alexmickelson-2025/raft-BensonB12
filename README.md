@@ -142,4 +142,4 @@ The superior consensus algorithm
 - How will I test something that should never end because it is always waiting?
 - Do nodes return false if they are asked to vote again, or do they just not respond? I need to alter some tests if that is the case
 - The request and data return needs to be async
-- How will I test time passing in my tests? Is there a way to 'mock' it instead of actually waiting?
+- How will I test time passing in my tests? Is there a way to 'mock' it instead of actually waiting? (Sleep thread)
