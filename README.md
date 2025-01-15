@@ -6,140 +6,120 @@ The superior consensus algorithm
 
 1. <br/>
 
-- Given a ServerNode just created
-- When asked its state
-- Then it returns that it is a Follower
+- **Given** a leader is active
+- **When** the leader sends a heartbeat
+- **Then** it sends the heartbeat within 50ms
 
 2. <br/>
 
-- Given a ServerNode just created
-- When asked its election timeout status
-- Then it returns a time it has been waiting for a leader's update
+- **Given** a node receives an AppendEntries from another node
+- **When** the AppendEntries message is processed
+- **Then** the node remembers that the other node is the current leader
 
 3. <br/>
 
-- Given a ServerNode is a follower
-- When there is no update from a leader
-- Then the election timeout status decreases/continues accordingly
+- **Given** a new node is initialized
+- **When** the node is created
+- **Then** it should be in follower state
 
 4. <br/>
 
-- Given a ServerNode is a follower, the serverNode's election timeout status is 0
-- When it checks its election timeout status
-- Then it becomes a candidate
+- **Given** a follower node does not receive any message for 300ms
+- **When** the follower node waits
+- **Then** it starts an election
 
 5. <br/>
 
-- Given a ServerNode
-- When asked who it votes for
-- Then it returns true
+- **Given** the election time is reset
+- **When** the election timeout is set
+- **Then** it should be a random value between 150ms and 300ms
 
 6. <br/>
 
-- Given a ServerNode that has set its own flag to false
-- When asked who it votes for
-- Then it returns false
+- **Given** the election timeout is a random value
+- **When** n calls are made to check election timeouts
+- **Then** some of the timeout values should be different (other properties of the distribution can be asserted as well)
 
 7. <br/>
 
-- Given a ServerNode that is alone
-- When asked for a total vote
-- Then it returns true for its majority
+- **Given** a new election begins
+- **When** the election starts
+- **Then** the term is incremented by 1
 
 8. <br/>
 
-- Given a ServerNode that is alone and has a flag set to false
-- When asked for a total vote
-- Then it returns false for its majority
+- **Given** a new node is created
+- **When** the node is initialized
+- **Then** store the ID in a variable and wait 300ms, then reread the term and assert that it is greater by at least 1
 
 9. <br/>
 
-- Given a group of ServerNodes
-- When one sends out a vote request
-- Then all other nodes receive a vote request
+- **Given** a follower node receives an AppendEntries message
+- **When** the AppendEntries message is received
+- **Then** the election timer is reset, and no new election starts
 
 10. <br/>
 
-- Given a ServerNode is a follower, the ServerNode's election timeout status is 0
-- When it checks its election timeout status, turns into a candidate
-- Then it sends out vote requests to all other ServerNodes
+- **Given** an election begins
+- **When** the candidate receives a majority of votes
+- **Then** the candidate becomes a leader
 
 11. <br/>
 
-- Given a group of ServerNodes
-- When one sends out a vote request
-- Then all other nodes respond with a true vote request
+- **Given** an election begins with a candidate
+- **When** the candidate receives a majority of votes while waiting for an unresponsive node
+- **Then** the candidate becomes a leader
 
 12. <br/>
 
-- Given a group of ServerNodes
-- When one sends out a vote request, they all respond true
-- The node that sent out the vote request becomes a leader
+- **Given** a follower has not voted and is in an earlier term
+- **When** the follower receives a RequestForVoteRPC
+- **Then** the follower responds with "yes"
 
 13. <br/>
 
-- Given a ServerNode is a follower, there is a leader ServerNode
-- When the leader gives a follower an update
-- Then the follower's election timeout status increases/restarts accordingly
+- **Given** a candidate server just became a candidate
+- **When** the candidate votes for itself
+- **Then** the candidate votes for itself
 
 14. <br/>
 
-- Given you have a serverNode that is down
-- When you ask for a vote
-- It does not respond
+- **Given** a candidate receives an AppendEntries message from a node with a later term
+- **When** the candidate processes the AppendEntries message
+- **Then** the candidate loses and becomes a follower
 
 15. <br/>
 
-- Given you have a ServerNode that is a newly turned candidate, two other servers up, two down
-- When it requests a vote from all other ServerNodes
-- It got 3 votes for it, and turned into a leader
+- **Given** a candidate receives an AppendEntries message from a node with an equal term
+- **When** the candidate processes the AppendEntries message
+- **Then** the candidate loses and becomes a follower
 
 16. <br/>
 
-- Given you have a ServerNode that is a newly turned candidate, three other servers are down
-- When it asks for votes
-- It does not turn into a leader
+- **Given** a node receives a second request for vote for the same term
+- **When** the node processes the request
+- **Then** the node responds with "no"
 
 17. <br/>
 
-- Given You have Two candidates that were created at the same time
-- When they ask for votes
-- Then it is a split vote
+- **Given** a node receives a second request for vote for a future term
+- **When** the node processes the request
+- **Then** the node votes for that node
 
 18. <br/>
 
-- Given you have a candidate
-- When it asks for all votes
-- Then the election timer is still counting down
+- **Given** a candidate's election timer expires during an election
+- **When** the timer expires
+- **Then** a new election is started
 
 19. <br/>
 
-- Given that you have a ServerNode
-- When asked what term it is
-- Then it returns the right term, such as 1
+- **Given** a follower node receives an AppendEntries request
+- **When** the request is processed
+- **Then** the follower sends a response
 
 20. <br/>
 
-- Given that you have a ServerNode that just voted in term 1
-- When asked to vote for someone else in term 1
-- Then the server does not vote again
-
-21. <br/>
-
-- Given that you have a ServerNode that just voted in term 1
-- When it dies, turns back on, and then asked to vote in term 1 again
-- Then the server does not vote again
-
-22. <br/>
-
-- Given when a ServerNode is on term 1, already voted in term 1
-- When it is asked to vote for term 2
-- It votes again
-
-### Other Considerations
-
-- What does it look like to 'shut down' in my code?
-- How will I test something that should never end because it is always waiting?
-- Do nodes return false if they are asked to vote again, or do they just not respond? I need to alter some tests if that is the case
-- The request and data return needs to be async
-- How will I test time passing in my tests? Is there a way to 'mock' it instead of actually waiting? (Sleep thread)
+- **Given** a candidate receives an AppendEntries message from a previous term
+- **When** the candidate processes the message
+- **Then** the candidate rejects the message

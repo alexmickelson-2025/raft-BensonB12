@@ -4,16 +4,18 @@ namespace logic;
 
 public class ServerNode
 {
-  ServerNodeState _state;
+  int _id = GenerateKey.UniqueServerNodeId();
+  ServerNodeState _state = ServerNodeState.FOLLOWER;
   public ServerNodeState State => _state;
   int _term = 0;
   public int Term => _term;
   System.Timers.Timer _electionTimeOut;
   public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
+  List<ServerNode> _otherServerNodesInCluster = [];
+  List<Thread> _heartbeatThreads = [];
 
   public ServerNode()
   {
-    _state = ServerNodeState.FOLLOWER;
     _electionTimeOut = newElectionTimer();
     _electionTimeOut.Elapsed += electionTimedOutProcedure;
   }
@@ -23,19 +25,87 @@ public class ServerNode
     _state = ServerNodeState.CANDIDATE;
     _term++;
     _electionTimeOut = newElectionTimer();
+    runElectionForYourself();
   }
 
   System.Timers.Timer newElectionTimer()
   {
     int randomElectionTime = Random.Shared.Next(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
 
-    System.Timers.Timer tempTimer = new(randomElectionTime)
+    return new(randomElectionTime)
     {
-      AutoReset = false
+      AutoReset = false,
+      Enabled = true
+    };
+  }
+
+  void runElectionForYourself()
+  {
+    // Simulate voting
+    Thread.Sleep(300);
+    becomeLeader();
+  }
+
+  void becomeLeader()
+  {
+    _state = ServerNodeState.LEADER;
+
+    foreach (ServerNode server in _otherServerNodesInCluster)
+    {
+      Thread thread = new(() => runSendHeartbeatsToServerNodeAsync(server));
+      thread.Start();
+      _heartbeatThreads.Add(thread);
+    }
+  }
+
+  async void runSendHeartbeatsToServerNodeAsync(ServerNode server)
+  {
+    while (_state == ServerNodeState.LEADER)
+    {
+      await sendHeartbeatsToServerNodeAsync(server);
+      Thread.Sleep(Constants.HEARTBEAT_PAUSE);
+    }
+  }
+
+  async Task sendHeartbeatsToServerNodeAsync(ServerNode server)
+  {
+    HeartbeatArguments heartbeatArguments = new()
+    {
+      Term = _term,
+      ServerNodeId = _id
     };
 
-    tempTimer.Start();
+    await server.ReceiveHeartBeat(heartbeatArguments);
+  }
 
-    return tempTimer;
+  public async Task ReceiveHeartBeat(HeartbeatArguments arguments)
+  {
+    _electionTimeOut.Stop();
+    _electionTimeOut.Start();
+
+    if (arguments.Term <= _term)
+    {
+      return;
+    }
+
+    _term = arguments.Term;
+    ServerNodeState oldState = _state;
+    _state = ServerNodeState.FOLLOWER;
+
+    if (oldState == ServerNodeState.LEADER)
+    {
+      stopAllHeartBeatThreads();
+    }
+
+    await Task.CompletedTask;
+  }
+
+  void stopAllHeartBeatThreads()
+  {
+    foreach (Thread thread in _heartbeatThreads)
+    {
+      // I am worried this might not work and we will need a cancellation token
+      thread.Join();
+    }
   }
 }

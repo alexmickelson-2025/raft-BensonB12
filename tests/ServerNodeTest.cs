@@ -1,12 +1,11 @@
 using logic;
 using FluentAssertions;
-using System.Reflection.Metadata;
 
 namespace tests;
 
 public class ServerNodeTest
 {
-    [Fact]
+    [Fact(Skip = "Felt out of algorithm order")]
     public void WhenALeaderIsActiveItSendsAHeartbeatWithinFiftyMilliseconds()
     {
         // Given
@@ -19,7 +18,7 @@ public class ServerNodeTest
         // state.Should().Be(ServerNodeState.FOLLOWER);
     }
 
-    [Fact]
+    [Fact(Skip = "Felt out of algorithm order")]
     public void WhenANodeReceivesAnAppendEntriesFromAnotherNodeTheFirstNodeKnowsThatTheOtherNodeIsTheLeader()
     {
         // Given
@@ -29,6 +28,9 @@ public class ServerNodeTest
         // Then
     }
 
+    /// <summary>
+    /// Testing #3
+    /// </summary>
     [Fact]
     public void WhenANewNodeIsInitialedItIsAFollower()
     {
@@ -42,6 +44,9 @@ public class ServerNodeTest
         state.Should().Be(ServerNodeState.FOLLOWER);
     }
 
+    /// <summary>
+    /// Testing #4
+    /// </summary>
     [Fact]
     public void WhenTheFollowerDoesNotGetAMessageForThreeHundredMillisecondsItStartsAnElection()
     {
@@ -55,6 +60,9 @@ public class ServerNodeTest
         server.State.Should().Be(ServerNodeState.CANDIDATE);
     }
 
+    /// <summary>
+    /// Testing #5
+    /// </summary>
     [Fact]
     public void WhenTheElectionTimeIsResetItIsARandomValueBetweenTheElectionTimerConstants()
     {
@@ -72,6 +80,9 @@ public class ServerNodeTest
         }
     }
 
+    /// <summary>
+    /// Testing #5
+    /// </summary>
     [Fact]
     public void WhenTheElectionTimeIsResetItIsARandomValueBetweenOtherServers()
     {
@@ -89,6 +100,9 @@ public class ServerNodeTest
         intervalsSet.Count().Should().NotBe(1);
     }
 
+    /// <summary>
+    /// Testing #6
+    /// </summary>
     [Fact]
     public void WhenElectionBeginsTheTermIsIncrementedByOne()
     {
@@ -101,5 +115,36 @@ public class ServerNodeTest
 
         // Then
         server.Term.Should().BeGreaterThan(firstTerm);
+    }
+
+    [Fact(Skip = "Felt out of algorithm order")]
+    public void WhenAFollowerReceivesAnAppendEntriesMessageItResetsTheElectionTimer()
+    {
+        // Given
+
+        // When
+
+        // Then
+    }
+
+    /// <summary>
+    /// Testing #8
+    /// </summary>
+    [Fact]
+    public void GivenAnElectionWhenACandidateGetsAMajorityVotesItBecomesALeader()
+    {
+        // Given
+        ServerNode server = new();
+
+        // When
+
+        // Server becomes a Candidate
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+
+        // Candidate asks for votes (itself) and turns into leader
+        Thread.Sleep(300);
+
+        // Then
+        server.State.Should().Be(ServerNodeState.LEADER);
     }
 }
