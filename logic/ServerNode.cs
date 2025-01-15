@@ -7,6 +7,7 @@ public class ServerNode
   ServerNodeState _state;
   public ServerNodeState State => _state;
   System.Timers.Timer _electionTimeOut;
+  public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
 
   public ServerNode()
   {
