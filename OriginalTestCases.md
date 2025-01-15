@@ -1,8 +1,4 @@
-# Raft
-
-The superior consensus algorithm
-
-## Test Cases
+# First Test Cases Benson Created
 
 1. <br/>
 
@@ -140,6 +136,6 @@ The superior consensus algorithm
 
 - What does it look like to 'shut down' in my code?
 - How will I test something that should never end because it is always waiting?
-- Do nodes return false if they are asked to vote again, or do they just not respond? I need to alter some tests if that is the case
+- Do nodes return false if they are asked to vote again, or do they just not respond? I need to alter some tests if that is the case (Yes they do)
 - The request and data return needs to be async
-- How will I test time passing in my tests? Is there a way to 'mock' it instead of actually waiting? (Sleep thread)
+- How will I test time passing in my tests? Is there a way to 'mock' it instead of actually waiting?
