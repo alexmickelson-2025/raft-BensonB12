@@ -22,9 +22,9 @@ public class ServerNodeTest
     public void WhenANodeReceivesAnAppendEntriesFromAnotherNodeTheFirstNodeKnowsThatTheOtherNodeIsTheLeader()
     {
         // Given
-    
+
         // When
-    
+
         // Then
     }
 
@@ -39,5 +39,18 @@ public class ServerNodeTest
 
         // Then
         state.Should().Be(ServerNodeState.FOLLOWER);
+    }
+
+    [Fact]
+    public void WhenTheFollowerDoesNotGetAMessageForThreeHundredMillisecondsItStartsAnElection()
+    {
+        // Given
+        ServerNode server = new();
+
+        // When
+        Thread.Sleep(300);
+
+        // Then
+        server.State.Should().Be(ServerNodeState.CANDIDATE);
     }
 }
