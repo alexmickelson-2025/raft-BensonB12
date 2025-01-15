@@ -16,6 +16,7 @@ public class ServerNode
   List<Thread> _heartbeatThreads = [];
   int? _clusterLeaderId;
   public int? ClusterLeaderId => _clusterLeaderId;
+  bool _electionCancellationFlag = false;
 
   public ServerNode()
   {
@@ -40,7 +41,15 @@ public class ServerNode
 
   void electionTimedOutProcedure(object? sender, ElapsedEventArgs e)
   {
-    _state = ServerNodeState.CANDIDATE;
+    if (_state == ServerNodeState.CANDIDATE)
+    {
+      _electionCancellationFlag = true;
+    }
+    else
+    {
+      _state = ServerNodeState.CANDIDATE;
+    }
+
     _term++;
     _electionTimeOut = newElectionTimer();
     runElectionForYourself();
@@ -59,9 +68,11 @@ public class ServerNode
 
   void runElectionForYourself()
   {
-    // Simulate voting
-    Thread.Sleep(300);
-    becomeLeader();
+    //if (hasMajorityVotes())
+    {
+      Thread.Sleep(300);
+      becomeLeader();
+    }
   }
 
   void becomeLeader()
@@ -123,6 +134,24 @@ public class ServerNode
       // I am worried this might not work and we will need a cancellation token
       thread.Join();
     }
+  }
+
+  async Task<bool> hasMajorityVotes()
+  {
+    _electionCancellationFlag = false;
+    int numberOfNodes = _otherServerNodesInCluster.Count() + 1;
+    int numberOfVotesForMyself = 1;
+    int numberOfVotesRejected = 0;
+    int majority = numberOfNodes / 2;
+
+    while (numberOfVotesForMyself < majority && numberOfVotesRejected < majority && !_electionCancellationFlag)
+    {
+      // Call The others
+    }
+
+    return numberOfVotesForMyself > majority;
+
+    // Do I become a follower? Or do I wait for a heartbeat?
   }
 
   public void KillServer()
