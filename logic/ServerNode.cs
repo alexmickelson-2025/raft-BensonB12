@@ -1,19 +1,21 @@
-﻿using System.IO.Compression;
+﻿using System.Data.Common;
+using System.IO.Compression;
 using System.Timers;
 
 namespace logic;
 
 public class ServerNode
 {
-  int _id = GenerateKey.UniqueServerNodeId();
+  readonly int _id = GenerateKey.UniqueServerNodeId();
+  public int Id => _id;
   ServerNodeState _state = ServerNodeState.FOLLOWER;
   public ServerNodeState State => _state;
   int _term = 0;
   public int Term => _term;
   System.Timers.Timer _electionTimeOut = new();
   public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
-  List<ServerNode> _otherServerNodesInCluster = [];
-  List<Thread> _heartbeatThreads = [];
+  readonly List<ServerNode> _otherServerNodesInCluster = [];
+  readonly List<Thread> _heartbeatThreads = [];
   int? _clusterLeaderId;
   public int? ClusterLeaderId => _clusterLeaderId;
   bool _electionCancellationFlag = false;
@@ -36,9 +38,9 @@ public class ServerNode
     _electionTimeOut.Elapsed += electionTimedOutProcedure;
   }
 
-  public void AddServerToServersCluster(ServerNode otherServer)
+  public void AddServersToServersCluster(IEnumerable<ServerNode> otherServers)
   {
-    _otherServerNodesInCluster.Add(otherServer);
+    _otherServerNodesInCluster.AddRange(otherServers);
   }
 
   void electionTimedOutProcedure(object? sender, ElapsedEventArgs e)

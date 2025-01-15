@@ -14,7 +14,7 @@ public class ServerNodeTest
         // Given
         ServerNode leaderNode = new();
         ServerNode followerServer = new();
-        leaderNode.AddServerToServersCluster(followerServer);
+        leaderNode.AddServersToServersCluster([followerServer]);
 
         // When
 
@@ -37,7 +37,7 @@ public class ServerNodeTest
         // Given
         ServerNode leaderNode = new(1);
         ServerNode followerServer = new();
-        leaderNode.AddServerToServersCluster(followerServer);
+        leaderNode.AddServersToServersCluster([followerServer]);
 
         // When
 
@@ -149,7 +149,7 @@ public class ServerNodeTest
         // Given
         ServerNode leaderNode = new();
         ServerNode followerServer = new();
-        leaderNode.AddServerToServersCluster(followerServer);
+        leaderNode.AddServersToServersCluster([followerServer]);
 
         // When
 
@@ -195,7 +195,7 @@ public class ServerNodeTest
         // Given
         ServerNode leaderNode = new();
         ServerNode candidateServer = new();
-        leaderNode.AddServerToServersCluster(candidateServer);
+        leaderNode.AddServersToServersCluster([candidateServer]);
 
         // When
 

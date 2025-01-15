@@ -230,6 +230,22 @@ csharp_preserve_single_line_statements = true
 # IDE0060: Remove unused parameter
 dotnet_diagnostic.IDE0060.severity = warning
 
+# Naming rule to allow camelCase for private methods
+dotnet_naming_rule.private_methods_should_be_camelcase.symbols = private_methods
+dotnet_naming_rule.private_methods_should_be_camelcase.style = camel_case
+dotnet_naming_rule.private_methods_should_be_camelcase.severity = none
+
+dotnet_naming_symbols.private_methods.applicable_accessibilities = private
+dotnet_naming_symbols.private_methods.applicable_kinds = method
+dotnet_naming_symbols.private_methods.required_modifiers = 
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+dotnet_naming_style.camel_case.required_prefix = 
+dotnet_naming_style.camel_case.required_suffix =
+
+dotnet_diagnostic.IDE0290.severity = none
+dotnet_diagnostic.IDE0007.severity = none
+
 [src/{Compilers,ExpressionEvaluator,Scripting}/**Test**/*.{cs,vb}]
 
 # IDE0060: Remove unused parameter

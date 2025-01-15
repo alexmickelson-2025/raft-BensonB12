@@ -1,0 +1,29 @@
+﻿@using logic;
+@* @rendermode InteractiveServer; *@
+@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+
+@code {
+  List<SimulationNode> simulationNodes = [];
+
+  void startSimulation()
+  {
+    ServerNode nodeOne = new();
+    ServerNode nodeTwo = new();
+    ServerNode nodeThree = new();
+
+    SimulationNode simulationOne = new(nodeOne);
+    SimulationNode simulationTwo = new(nodeTwo);
+    SimulationNode simulationThree = new(nodeThree);
+
+    @* nodeOne.AddServersToServersCluster([simulationTwo, simulationThree]); *@
+
+    simulationNodes = [simulationOne, simulationTwo, simulationThree];
+  }
+}
