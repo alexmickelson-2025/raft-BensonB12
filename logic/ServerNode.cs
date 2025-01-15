@@ -10,7 +10,7 @@ public class ServerNode
   public ServerNodeState State => _state;
   int _term = 0;
   public int Term => _term;
-  System.Timers.Timer _electionTimeOut;
+  System.Timers.Timer _electionTimeOut = new();
   public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
   List<ServerNode> _otherServerNodesInCluster = [];
   List<Thread> _heartbeatThreads = [];
@@ -28,6 +28,8 @@ public class ServerNode
     _id = id;
     initializeServerNode();
   }
+
+  // Editor config to change the 
   void initializeServerNode()
   {
     _electionTimeOut = newElectionTimer();
