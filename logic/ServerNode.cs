@@ -1,4 +1,5 @@
-﻿using System.Timers;
+﻿using System.IO.Compression;
+using System.Timers;
 
 namespace logic;
 
@@ -13,11 +14,28 @@ public class ServerNode
   public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
   List<ServerNode> _otherServerNodesInCluster = [];
   List<Thread> _heartbeatThreads = [];
+  int? _clusterLeaderId;
+  public int? ClusterLeaderId => _clusterLeaderId;
 
   public ServerNode()
   {
+    initializeServerNode();
+  }
+
+  public ServerNode(int id)
+  {
+    _id = id;
+    initializeServerNode();
+  }
+  void initializeServerNode()
+  {
     _electionTimeOut = newElectionTimer();
     _electionTimeOut.Elapsed += electionTimedOutProcedure;
+  }
+
+  public void AddServerToServersCluster(ServerNode otherServer)
+  {
+    _otherServerNodesInCluster.Add(otherServer);
   }
 
   void electionTimedOutProcedure(object? sender, ElapsedEventArgs e)
@@ -49,6 +67,7 @@ public class ServerNode
   void becomeLeader()
   {
     _state = ServerNodeState.LEADER;
+    _clusterLeaderId = _id;
 
     foreach (ServerNode server in _otherServerNodesInCluster)
     {
@@ -83,19 +102,16 @@ public class ServerNode
     _electionTimeOut.Stop();
     _electionTimeOut.Start();
 
-    if (arguments.Term <= _term)
-    {
-      return;
-    }
-
-    _term = arguments.Term;
     ServerNodeState oldState = _state;
     _state = ServerNodeState.FOLLOWER;
+    _clusterLeaderId = arguments.ServerNodeId;
 
     if (oldState == ServerNodeState.LEADER)
     {
       stopAllHeartBeatThreads();
     }
+
+    _term = arguments.Term;
 
     await Task.CompletedTask;
   }
@@ -107,5 +123,11 @@ public class ServerNode
       // I am worried this might not work and we will need a cancellation token
       thread.Join();
     }
+  }
+
+  public void KillServer()
+  {
+    _state = ServerNodeState.FOLLOWER;
+    stopAllHeartBeatThreads();
   }
 }

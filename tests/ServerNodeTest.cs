@@ -5,27 +5,50 @@ namespace tests;
 
 public class ServerNodeTest
 {
-    [Fact(Skip = "Felt out of algorithm order")]
+    /// <summary>
+    /// Testing #1
+    /// </summary>
+    [Fact]
     public void WhenALeaderIsActiveItSendsAHeartbeatWithinFiftyMilliseconds()
     {
         // Given
-        // ServerNode serverNode = new();
+        ServerNode leaderNode = new();
+        ServerNode followerServer = new();
+        leaderNode.AddServerToServersCluster(followerServer);
 
         // When
-        // ServerNodeState state = serverNode.state;
+
+        // LeaderNode Becomes Leader (The follower does not know the leader exists)
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+        Thread.Sleep(600);
+
+        leaderNode.KillServer();
 
         // Then
-        // state.Should().Be(ServerNodeState.FOLLOWER);
+        followerServer.State.Should().Be(ServerNodeState.FOLLOWER);
     }
 
-    [Fact(Skip = "Felt out of algorithm order")]
-    public void WhenANodeReceivesAnAppendEntriesFromAnotherNodeTheFirstNodeKnowsThatTheOtherNodeIsTheLeader()
+    /// <summary>
+    /// Testing #1
+    /// </summary>
+    [Fact]
+    public void WhenANodeReceivesAnAppendEntriesOrHeartBeatFromAnotherNodeTheFirstNodeKnowsThatTheOtherNodeIsTheLeader()
     {
         // Given
+        ServerNode leaderNode = new(1);
+        ServerNode followerServer = new();
+        leaderNode.AddServerToServersCluster(followerServer);
 
         // When
 
+        // LeaderNode Becomes Leader (The follower does not know the leader exists)
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+        Thread.Sleep(600);
+
+        leaderNode.KillServer();
+
         // Then
+        followerServer.ClusterLeaderId.Should().Be(1);
     }
 
     /// <summary>
