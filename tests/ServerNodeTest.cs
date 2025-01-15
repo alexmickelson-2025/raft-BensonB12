@@ -140,14 +140,27 @@ public class ServerNodeTest
         server.Term.Should().BeGreaterThan(firstTerm);
     }
 
-    [Fact(Skip = "Felt out of algorithm order")]
-    public void WhenAFollowerReceivesAnAppendEntriesMessageItResetsTheElectionTimer()
+    /// <summary>
+    /// Testing #7
+    /// </summary>
+    [Fact]
+    public void WhenAFollowerReceivesAnAppendEntriesMessageOrHeartbeatItResetsTheElectionTimer()
     {
         // Given
+        ServerNode leaderNode = new();
+        ServerNode followerServer = new();
+        leaderNode.AddServerToServersCluster(followerServer);
 
         // When
 
+        // LeaderNode Becomes Leader (The follower does not know the leader exists)
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+        Thread.Sleep(600);
+
+        leaderNode.KillServer();
+
         // Then
+        followerServer.State.Should().Be(ServerNodeState.FOLLOWER);
     }
 
     /// <summary>
@@ -169,5 +182,30 @@ public class ServerNodeTest
 
         // Then
         server.State.Should().Be(ServerNodeState.LEADER);
+    }
+
+    /// Skipping Tests 9, 10, 11 because they seem to be out of order of my criteria / implementation
+
+    /// <summary>
+    /// Testing #12
+    /// </summary>
+    [Fact]
+    public void GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageItBecomesAFollowerAndLoses()
+    {
+        // Given
+        ServerNode leaderNode = new();
+        ServerNode candidateServer = new();
+        leaderNode.AddServerToServersCluster(candidateServer);
+
+        // When
+
+        // LeaderNode Becomes Leader (The follower does not know the leader exists)
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+        Thread.Sleep(600);
+
+        leaderNode.KillServer();
+
+        // Then
+        candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
     }
 }

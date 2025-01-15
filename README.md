@@ -4,122 +4,32 @@ The superior consensus algorithm
 
 ## Test Cases
 
-1. <br/>
+1. When a leader is active, it sends a heartbeat within 50ms.
+2. When a node receives an AppendEntries from another node, then the first node remembers that the other node is the current leader.
+3. When a new node is initialized, it should be in follower state.
+4. When a follower doesn't get a message for 300ms, it starts an election.
+5. When the election time is reset, it is a random value between 150 and 300ms.
 
-- **Given** a leader is active
-- **When** the leader sends a heartbeat
-- **Then** it sends the heartbeat within 50ms
+- Between
+- random times, call n times and make sure that there are some that are different (other properties of the distribution if you like).
 
-2. <br/>
+6. When a new election begins, the term is incremented by 1.
 
-- **Given** a node receives an AppendEntries from another node
-- **When** the AppendEntries message is processed
-- **Then** the node remembers that the other node is the current leader
+- Create a new node, store id in a variable.
+- Wait 300ms.
+- Reread term (?).
+- Assert after the term is greater (by at least 1).
 
-3. <br/>
-
-- **Given** a new node is initialized
-- **When** the node is created
-- **Then** it should be in follower state
-
-4. <br/>
-
-- **Given** a follower node does not receive any message for 300ms
-- **When** the follower node waits
-- **Then** it starts an election
-
-5. <br/>
-
-- **Given** the election time is reset
-- **When** the election timeout is set
-- **Then** it should be a random value between 150ms and 300ms
-
-6. <br/>
-
-- **Given** the election timeout is a random value
-- **When** n calls are made to check election timeouts
-- **Then** some of the timeout values should be different (other properties of the distribution can be asserted as well)
-
-7. <br/>
-
-- **Given** a new election begins
-- **When** the election starts
-- **Then** the term is incremented by 1
-
-8. <br/>
-
-- **Given** a new node is created
-- **When** the node is initialized
-- **Then** store the ID in a variable and wait 300ms, then reread the term and assert that it is greater by at least 1
-
-9. <br/>
-
-- **Given** a follower node receives an AppendEntries message
-- **When** the AppendEntries message is received
-- **Then** the election timer is reset, and no new election starts
-
-10. <br/>
-
-- **Given** an election begins
-- **When** the candidate receives a majority of votes
-- **Then** the candidate becomes a leader
-
-11. <br/>
-
-- **Given** an election begins with a candidate
-- **When** the candidate receives a majority of votes while waiting for an unresponsive node
-- **Then** the candidate becomes a leader
-
-12. <br/>
-
-- **Given** a follower has not voted and is in an earlier term
-- **When** the follower receives a RequestForVoteRPC
-- **Then** the follower responds with "yes"
-
-13. <br/>
-
-- **Given** a candidate server just became a candidate
-- **When** the candidate votes for itself
-- **Then** the candidate votes for itself
-
-14. <br/>
-
-- **Given** a candidate receives an AppendEntries message from a node with a later term
-- **When** the candidate processes the AppendEntries message
-- **Then** the candidate loses and becomes a follower
-
-15. <br/>
-
-- **Given** a candidate receives an AppendEntries message from a node with an equal term
-- **When** the candidate processes the AppendEntries message
-- **Then** the candidate loses and becomes a follower
-
-16. <br/>
-
-- **Given** a node receives a second request for vote for the same term
-- **When** the node processes the request
-- **Then** the node responds with "no"
-
-17. <br/>
-
-- **Given** a node receives a second request for vote for a future term
-- **When** the node processes the request
-- **Then** the node votes for that node
-
-18. <br/>
-
-- **Given** a candidate's election timer expires during an election
-- **When** the timer expires
-- **Then** a new election is started
-
-19. <br/>
-
-- **Given** a follower node receives an AppendEntries request
-- **When** the request is processed
-- **Then** the follower sends a response
-
-20. <br/>
-
-- **Given** a candidate receives an AppendEntries message from a previous term
-- **When** the candidate processes the message
-- **Then** the candidate rejects the message
+7. When a follower does get an AppendEntries message, it resets the election timer (i.e., it doesn't start an election even after more than 300ms).
+8. Given an election begins, when the candidate gets a majority of votes, it becomes a leader (think of the easy case; can use two tests for single and multi-node clusters).
+9. Given a candidate receives a majority of votes while waiting for an unresponsive node, it still becomes a leader.
+10. A follower that has not voted and is in an earlier term responds to a RequestForVoteRPC with yes. (The reply will be a separate RPC).
+11. Given a candidate server that just became a candidate, it votes for itself.
+12. Given a candidate, when it receives an AppendEntries message from a node with a later term, then the candidate loses and becomes a follower.
+13. Given a candidate, when it receives an AppendEntries message from a node with an equal term, then the candidate loses and becomes a follower.
+14. If a node receives a second request for a vote for the same term, it should respond no (again, separate RPC for response).
+15. If a node receives a second request for a vote for a future term, it should vote for that node.
+16. Given a candidate, when an election timer expires inside of an election, a new election is started.
+17. When a follower node receives an AppendEntries request, it sends a response.
+18. Given a candidate receives an AppendEntries from a previous term, then it rejects.
+19. When a candidate wins an election, it immediately sends a heartbeat.
