@@ -49,7 +49,7 @@ public class ServerNodeTest
         ServerNode server = new();
 
         // When
-        Thread.Sleep(300);
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
 
         // Then
         server.State.Should().Be(ServerNodeState.CANDIDATE);
@@ -87,5 +87,19 @@ public class ServerNodeTest
 
         // Then
         intervalsSet.Count().Should().NotBe(1);
+    }
+
+    [Fact]
+    public void WhenElectionBeginsTheTermIsIncrementedByOne()
+    {
+        // Given
+        ServerNode server = new();
+        int firstTerm = server.Term;
+
+        // When
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+
+        // Then
+        server.Term.Should().BeGreaterThan(firstTerm);
     }
 }

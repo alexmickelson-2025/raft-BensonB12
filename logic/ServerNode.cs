@@ -6,6 +6,8 @@ public class ServerNode
 {
   ServerNodeState _state;
   public ServerNodeState State => _state;
+  int _term = 0;
+  public int Term => _term;
   System.Timers.Timer _electionTimeOut;
   public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
 
@@ -19,6 +21,7 @@ public class ServerNode
   void electionTimedOutProcedure(object? sender, ElapsedEventArgs e)
   {
     _state = ServerNodeState.CANDIDATE;
+    _term++;
     _electionTimeOut = newElectionTimer();
   }
 
