@@ -1,8 +1,9 @@
-namespace logic; 
+namespace logic;
 
 public enum ServerNodeState
 {
   FOLLOWER,
   CANDIDATE,
   LEADER,
+  DOWN,
 }

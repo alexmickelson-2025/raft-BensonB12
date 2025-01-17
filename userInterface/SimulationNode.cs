@@ -25,13 +25,18 @@ public class SimulationNode : IServerNode
     _innerServerNode.AddServersToServersCluster(otherServers);
   }
 
-  public Task ReceiveHeartBeat(HeartbeatArguments arguments)
+  public Task ReceiveHeartBeatAsync(HeartbeatArguments arguments)
   {
-    return _innerServerNode.ReceiveHeartBeat(arguments);
+    return _innerServerNode.ReceiveHeartBeatAsync(arguments);
   }
 
   public void KillServer()
   {
     _innerServerNode.KillServer();
+  }
+
+  public Task AcceptVoteAsync(bool inSupport)
+  {
+    return _innerServerNode.AcceptVoteAsync(inSupport);
   }
 }

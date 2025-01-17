@@ -8,6 +8,8 @@ public interface IServerNode
   int ElectionTimerInterval { get; }
   int? ClusterLeaderId { get; }
   void AddServersToServersCluster(IEnumerable<IServerNode> otherServers);
-  Task ReceiveHeartBeat(HeartbeatArguments arguments);
+  Task ReceiveHeartBeatAsync(HeartbeatArguments arguments);
   void KillServer();
+  Task AcceptVoteAsync(bool inSupport);
+  Task AskForVoteAsync(int id);
 }

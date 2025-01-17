@@ -4,14 +4,16 @@ namespace logic;
 
 public class ServerNode : IServerNode
 {
-  readonly int _id = GenerateKey.UniqueServerNodeId();
+  int _votesForMyself = 1;
+  int _votesRejected = 0;
+  readonly int _id = Utils.GenerateUniqueServerNodeId();
   public int Id => _id;
   ServerNodeState _state = ServerNodeState.FOLLOWER;
   public ServerNodeState State => _state;
   int _term = 0;
   public int Term => _term;
-  System.Timers.Timer _electionTimeOut = new();
-  public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
+  System.Timers.Timer _electionTimer = Utils.NewElectionTimer();
+  public int ElectionTimerInterval => (int)_electionTimer.Interval;
   readonly List<IServerNode> _otherServerNodesInCluster = [];
   readonly List<Thread> _heartbeatThreads = [];
   int? _clusterLeaderId;
@@ -20,19 +22,13 @@ public class ServerNode : IServerNode
 
   public ServerNode()
   {
-    initializeServerNode();
+    _electionTimer.Elapsed += async (sender, e) => await electionTimedOutProcedureAsync(sender, e);
   }
 
   public ServerNode(int id)
   {
     _id = id;
-    initializeServerNode();
-  }
-
-  void initializeServerNode()
-  {
-    _electionTimeOut = newElectionTimer();
-    _electionTimeOut.Elapsed += electionTimedOutProcedure;
+    _electionTimer.Elapsed += async (sender, e) => await electionTimedOutProcedureAsync(sender, e);
   }
 
   public void AddServersToServersCluster(IEnumerable<IServerNode> otherServers)
@@ -40,7 +36,7 @@ public class ServerNode : IServerNode
     _otherServerNodesInCluster.AddRange(otherServers);
   }
 
-  void electionTimedOutProcedure(object? sender, ElapsedEventArgs e)
+  async Task electionTimedOutProcedureAsync(object? sender, ElapsedEventArgs e)
   {
     if (_state == ServerNodeState.CANDIDATE)
     {
@@ -51,27 +47,23 @@ public class ServerNode : IServerNode
       _state = ServerNodeState.CANDIDATE;
     }
 
+    restartElectionFields();
+
+    await runElectionForYourselfAsync();
+  }
+
+  void restartElectionFields()
+  {
     _term++;
-    _electionTimeOut = newElectionTimer();
-    runElectionForYourself();
+    _votesForMyself = 1;
+    _votesRejected = 0;
+    _electionTimer = Utils.NewElectionTimer();
   }
 
-  System.Timers.Timer newElectionTimer()
+  async Task runElectionForYourselfAsync()
   {
-    int randomElectionTime = Random.Shared.Next(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
-
-    return new(randomElectionTime)
+    if (await hasMajorityVotesAsync())
     {
-      AutoReset = false,
-      Enabled = true
-    };
-  }
-
-  void runElectionForYourself()
-  {
-    //if (hasMajorityVotes())
-    {
-      Thread.Sleep(300);
       becomeLeader();
     }
   }
@@ -81,7 +73,7 @@ public class ServerNode : IServerNode
     _state = ServerNodeState.LEADER;
     _clusterLeaderId = _id;
 
-    foreach (ServerNode server in _otherServerNodesInCluster)
+    foreach (IServerNode server in _otherServerNodesInCluster)
     {
       Thread thread = new(() => runSendHeartbeatsToServerNodeAsync(server));
       thread.Start();
@@ -89,7 +81,7 @@ public class ServerNode : IServerNode
     }
   }
 
-  async void runSendHeartbeatsToServerNodeAsync(ServerNode server)
+  async void runSendHeartbeatsToServerNodeAsync(IServerNode server)
   {
     while (_state == ServerNodeState.LEADER)
     {
@@ -98,7 +90,7 @@ public class ServerNode : IServerNode
     }
   }
 
-  async Task sendHeartbeatsToServerNodeAsync(ServerNode server)
+  async Task sendHeartbeatsToServerNodeAsync(IServerNode server)
   {
     HeartbeatArguments heartbeatArguments = new()
     {
@@ -106,13 +98,13 @@ public class ServerNode : IServerNode
       ServerNodeId = _id
     };
 
-    await server.ReceiveHeartBeat(heartbeatArguments);
+    await server.ReceiveHeartBeatAsync(heartbeatArguments);
   }
 
-  public async Task ReceiveHeartBeat(HeartbeatArguments arguments)
+  public async Task ReceiveHeartBeatAsync(HeartbeatArguments arguments)
   {
-    _electionTimeOut.Stop();
-    _electionTimeOut.Start();
+    _electionTimer.Stop();
+    _electionTimer.Start();
 
     ServerNodeState oldState = _state;
     _state = ServerNodeState.FOLLOWER;
@@ -123,7 +115,7 @@ public class ServerNode : IServerNode
       stopAllHeartBeatThreads();
     }
 
-    _term = arguments.Term;
+    restartElectionFields();
 
     await Task.CompletedTask;
   }
@@ -137,27 +129,60 @@ public class ServerNode : IServerNode
     }
   }
 
-  async Task<bool> hasMajorityVotes()
+  async Task<bool> hasMajorityVotesAsync()
   {
     _electionCancellationFlag = false;
-    int numberOfNodes = _otherServerNodesInCluster.Count() + 1;
-    int numberOfVotesForMyself = 1;
-    int numberOfVotesRejected = 0;
-    int majority = numberOfNodes / 2;
+    int numberOfNodes = _otherServerNodesInCluster.Count + 1;
+    int majority = (numberOfNodes / 2) + 1;
 
-    while (numberOfVotesForMyself < majority && numberOfVotesRejected < majority && !_electionCancellationFlag)
+    foreach (IServerNode server in _otherServerNodesInCluster)
     {
-      // Call The others
+      await AskForVoteAsync(server.Id);
     }
 
-    return numberOfVotesForMyself > majority;
+    while (_votesForMyself < majority && _votesRejected < majority && !_electionCancellationFlag)
+    {
+      // Wait for calls
+    }
+
+    return _votesForMyself > majority;
 
     // Do I become a follower? Or do I wait for a heartbeat?
   }
 
+  public async Task AskForVoteAsync(int id)
+  {
+    // If I have not voted this term
+    await sendVoteToServerAsync(true, id); // Can only ask for votes once per term
+  }
+
+  async Task sendVoteToServerAsync(bool inFavor, int id)
+  {
+    IServerNode? receivingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
+
+    if (receivingNode is not null)
+    {
+      await receivingNode.AcceptVoteAsync(inFavor); // Can only send the vote once per term
+    }
+  }
+
+  public async Task AcceptVoteAsync(bool inFavor) // Does not care who sent the vote 
+  {
+    await Task.CompletedTask;
+
+    if (inFavor)
+    {
+      _votesForMyself++;
+    }
+    else
+    {
+      _votesRejected++;
+    }
+  }
+
   public void KillServer()
   {
-    _state = ServerNodeState.FOLLOWER;
+    _state = ServerNodeState.DOWN;
     stopAllHeartBeatThreads();
   }
 }
