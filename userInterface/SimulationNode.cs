@@ -12,36 +12,26 @@ public class SimulationNode : IServerNode
   }
   public int Id => _innerServerNode.Id;
 
-  public ServerNodeState State => ((IServerNode)_innerServerNode).State;
+  public ServerNodeState State => _innerServerNode.State;
 
-  public int Term => ((IServerNode)_innerServerNode).Term;
+  public int Term => _innerServerNode.Term;
 
-  public int ElectionTimerInterval => ((IServerNode)_innerServerNode).ElectionTimerInterval;
+  public int ElectionTimerInterval => _innerServerNode.ElectionTimerInterval;
 
-  public int? ClusterLeaderId => ((IServerNode)_innerServerNode).ClusterLeaderId;
-
-  public void initializeServerNode()
-  {
-    ((IServerNode)_innerServerNode).initializeServerNode();
-  }
+  public int? ClusterLeaderId => _innerServerNode.ClusterLeaderId;
 
   public void AddServersToServersCluster(IEnumerable<IServerNode> otherServers)
   {
-    ((IServerNode)_innerServerNode).AddServersToServersCluster(otherServers);
+    _innerServerNode.AddServersToServersCluster(otherServers);
   }
 
   public Task ReceiveHeartBeat(HeartbeatArguments arguments)
   {
-    return ((IServerNode)_innerServerNode).ReceiveHeartBeat(arguments);
-  }
-
-  public void iunElectionForYourself()
-  {
-    ((IServerNode)_innerServerNode).iunElectionForYourself();
+    return _innerServerNode.ReceiveHeartBeat(arguments);
   }
 
   public void KillServer()
   {
-    ((IServerNode)_innerServerNode).KillServer();
+    _innerServerNode.KillServer();
   }
 }

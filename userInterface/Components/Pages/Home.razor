@@ -10,16 +10,23 @@ Welcome to your new app.
 
 <button @onclick="startSimulation">Start</button>
 
-@foreach (var simulationNode in simulationNodes)
-{
-  <div>
-    @simulationNode.Id
-  </div>
-}
-
+<div class="row">
+  @foreach (var simulationNode in simulationNodes)
+  {
+    <div class="p-3 col-4">
+      <div>
+        @simulationNode.Id
+        <div>
+          @simulationNode.State
+        </div>
+      </div>
+    </div>
+  }
+</div>
 
 @code {
   List<SimulationNode> simulationNodes = [];
+  Timer timer;
   void startSimulation()
   {
     ServerNode nodeOne = new();
@@ -35,5 +42,11 @@ Welcome to your new app.
     nodeOne.AddServersToServersCluster([simulationOne, simulationTwo]);
 
     simulationNodes = [simulationOne, simulationTwo, simulationThree];
+
+    timer = new Timer(_ =>
+    {
+      Console.WriteLine("here");
+      InvokeAsync(StateHasChanged);
+    }, null, 0, 200);
   }
 }

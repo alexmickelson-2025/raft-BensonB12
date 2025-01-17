@@ -160,14 +160,4 @@ public class ServerNode : IServerNode
     _state = ServerNodeState.FOLLOWER;
     stopAllHeartBeatThreads();
   }
-
-  void IServerNode.initializeServerNode()
-  {
-    initializeServerNode();
-  }
-
-  public void iunElectionForYourself()
-  {
-    throw new NotImplementedException();
-  }
 }
