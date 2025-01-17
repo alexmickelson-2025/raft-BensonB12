@@ -13,7 +13,7 @@ public class ServerNodeTest
     {
         // Given
         ServerNode leaderNode = new();
-        ServerNode followerServer = new();
+        ServerNode followerServer = new(); // I should replace this with an NSubstitute
         leaderNode.AddServersToServersCluster([followerServer]);
 
         // When
