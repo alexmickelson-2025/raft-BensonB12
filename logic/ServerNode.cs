@@ -1,10 +1,8 @@
-﻿using System.Data.Common;
-using System.IO.Compression;
-using System.Timers;
+﻿using System.Timers;
 
 namespace logic;
 
-public class ServerNode
+public class ServerNode : IServerNode
 {
   readonly int _id = GenerateKey.UniqueServerNodeId();
   public int Id => _id;
@@ -14,7 +12,7 @@ public class ServerNode
   public int Term => _term;
   System.Timers.Timer _electionTimeOut = new();
   public int ElectionTimerInterval => (int)_electionTimeOut.Interval;
-  readonly List<ServerNode> _otherServerNodesInCluster = [];
+  readonly List<IServerNode> _otherServerNodesInCluster = [];
   readonly List<Thread> _heartbeatThreads = [];
   int? _clusterLeaderId;
   public int? ClusterLeaderId => _clusterLeaderId;
@@ -31,14 +29,13 @@ public class ServerNode
     initializeServerNode();
   }
 
-  // Editor config to change the 
   void initializeServerNode()
   {
     _electionTimeOut = newElectionTimer();
     _electionTimeOut.Elapsed += electionTimedOutProcedure;
   }
 
-  public void AddServersToServersCluster(IEnumerable<ServerNode> otherServers)
+  public void AddServersToServersCluster(IEnumerable<IServerNode> otherServers)
   {
     _otherServerNodesInCluster.AddRange(otherServers);
   }
@@ -162,5 +159,15 @@ public class ServerNode
   {
     _state = ServerNodeState.FOLLOWER;
     stopAllHeartBeatThreads();
+  }
+
+  void IServerNode.initializeServerNode()
+  {
+    initializeServerNode();
+  }
+
+  public void iunElectionForYourself()
+  {
+    throw new NotImplementedException();
   }
 }

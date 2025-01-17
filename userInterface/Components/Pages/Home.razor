@@ -1,5 +1,5 @@
 ﻿@using logic;
-@* @rendermode InteractiveServer; *@
+@rendermode InteractiveServer
 @page "/"
 
 <PageTitle>Home</PageTitle>
@@ -8,10 +8,18 @@
 
 Welcome to your new app.
 
+<button @onclick="startSimulation">Start</button>
+
+@foreach (var simulationNode in simulationNodes)
+{
+  <div>
+    @simulationNode.Id
+  </div>
+}
+
 
 @code {
   List<SimulationNode> simulationNodes = [];
-
   void startSimulation()
   {
     ServerNode nodeOne = new();
@@ -22,7 +30,9 @@ Welcome to your new app.
     SimulationNode simulationTwo = new(nodeTwo);
     SimulationNode simulationThree = new(nodeThree);
 
-    @* nodeOne.AddServersToServersCluster([simulationTwo, simulationThree]); *@
+    nodeOne.AddServersToServersCluster([simulationTwo, simulationThree]);
+    nodeOne.AddServersToServersCluster([simulationOne, simulationThree]);
+    nodeOne.AddServersToServersCluster([simulationOne, simulationTwo]);
 
     simulationNodes = [simulationOne, simulationTwo, simulationThree];
   }
