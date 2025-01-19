@@ -38,14 +38,13 @@ Welcome to your new app.
     SimulationNode simulationThree = new(nodeThree);
 
     nodeOne.AddServersToServersCluster([simulationTwo, simulationThree]);
-    nodeOne.AddServersToServersCluster([simulationOne, simulationThree]);
-    nodeOne.AddServersToServersCluster([simulationOne, simulationTwo]);
+    nodeTwo.AddServersToServersCluster([simulationOne, simulationThree]);
+    nodeThree.AddServersToServersCluster([simulationOne, simulationTwo]);
 
     simulationNodes = [simulationOne, simulationTwo, simulationThree];
 
     timer = new Timer(_ =>
     {
-      Console.WriteLine("here");
       InvokeAsync(StateHasChanged);
     }, null, 0, 200);
   }

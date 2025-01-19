@@ -11,5 +11,5 @@ public interface IServerNode
   Task ReceiveHeartBeatAsync(HeartbeatArguments arguments);
   void KillServer();
   Task AcceptVoteAsync(bool inSupport);
-  Task AskForVoteAsync(int id);
+  Task ThrowBalletFor(int id);
 }

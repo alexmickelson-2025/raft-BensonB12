@@ -12,10 +12,11 @@ public class ServerNode : IServerNode
   public ServerNodeState State => _state;
   int _term = 0;
   public int Term => _term;
+  readonly Dictionary<int, bool> _hasVotedInTerm = new() { { 0, false } };
   System.Timers.Timer _electionTimer = Utils.NewElectionTimer();
   public int ElectionTimerInterval => (int)_electionTimer.Interval;
-  readonly List<IServerNode> _otherServerNodesInCluster = [];
-  readonly List<Thread> _heartbeatThreads = [];
+  List<IServerNode> _otherServerNodesInCluster = [];
+  List<Thread> _heartbeatThreads = [];
   int? _clusterLeaderId;
   public int? ClusterLeaderId => _clusterLeaderId;
   bool _electionCancellationFlag = false;
@@ -55,6 +56,7 @@ public class ServerNode : IServerNode
   void restartElectionFields()
   {
     _term++;
+    _hasVotedInTerm[_term] = false;
     _votesForMyself = 1;
     _votesRejected = 0;
     _electionTimer = Utils.NewElectionTimer();
@@ -73,6 +75,8 @@ public class ServerNode : IServerNode
     _state = ServerNodeState.LEADER;
     _clusterLeaderId = _id;
 
+    // Watchout for updates to _otherServerNodesInCluster or the servers in them, it will throw an exception
+    // Should probably test and then catch and handle cases for that
     foreach (IServerNode server in _otherServerNodesInCluster)
     {
       Thread thread = new(() => runSendHeartbeatsToServerNodeAsync(server));
@@ -135,9 +139,10 @@ public class ServerNode : IServerNode
     int numberOfNodes = _otherServerNodesInCluster.Count + 1;
     int majority = (numberOfNodes / 2) + 1;
 
-    foreach (IServerNode server in _otherServerNodesInCluster)
+    // Cannot do foreach because of they will update (Threading)
+    for (int i = 0; i < _otherServerNodesInCluster.Count; i++)
     {
-      await AskForVoteAsync(server.Id);
+      await petitionServerForSupport(_otherServerNodesInCluster[i].Id);
     }
 
     while (_votesForMyself < majority && _votesRejected < majority && !_electionCancellationFlag)
@@ -145,24 +150,41 @@ public class ServerNode : IServerNode
       // Wait for calls
     }
 
-    return _votesForMyself > majority;
+    return _votesForMyself >= majority;
 
     // Do I become a follower? Or do I wait for a heartbeat?
   }
 
-  public async Task AskForVoteAsync(int id)
+  public async Task ThrowBalletFor(int id)
   {
-    // If I have not voted this term
-    await sendVoteToServerAsync(true, id); // Can only ask for votes once per term
+    if (_hasVotedInTerm[_term])
+    {
+      await registerVoteToServerAsync(true, id);
+    }
+    else
+    {
+      await registerVoteToServerAsync(false, id);
+    }
   }
 
-  async Task sendVoteToServerAsync(bool inFavor, int id)
+  async Task petitionServerForSupport(int id)
+  {
+    IServerNode? receivingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
+
+    if (receivingNode is not null)
+    {
+      await receivingNode.ThrowBalletFor(_id); // Can only ask for a vote once per term
+    }
+  }
+
+  async Task registerVoteToServerAsync(bool inFavor, int id)
   {
     IServerNode? receivingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
 
     if (receivingNode is not null)
     {
       await receivingNode.AcceptVoteAsync(inFavor); // Can only send the vote once per term
+      _hasVotedInTerm[_term] = true;
     }
   }
 
