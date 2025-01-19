@@ -99,7 +99,7 @@ public class ServerNodeTest
         // Then
         foreach (ServerNode server in servers)
         {
-            server.ElectionTimerInterval.Should().BeInRange(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME - 1);
+            server.ElectionTimer.Interval.Should().BeInRange(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME - 1);
         }
     }
 
@@ -117,7 +117,7 @@ public class ServerNodeTest
         }
 
         // When
-        IEnumerable<IGrouping<int, ServerNode>> intervalsSet = servers.GroupBy(server => server.ElectionTimerInterval);
+        IEnumerable<IGrouping<double, ServerNode>> intervalsSet = servers.GroupBy(server => server.ElectionTimer.Interval);
 
         // Then
         intervalsSet.Count().Should().NotBe(1);

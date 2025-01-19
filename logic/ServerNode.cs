@@ -14,7 +14,7 @@ public class ServerNode : IServerNode
   public int Term => _term;
   readonly Dictionary<int, bool> _hasVotedInTerm = new() { { 0, false } };
   System.Timers.Timer _electionTimer = Utils.NewElectionTimer();
-  public int ElectionTimerInterval => (int)_electionTimer.Interval;
+  public System.Timers.Timer ElectionTimer => _electionTimer;
   List<IServerNode> _otherServerNodesInCluster = [];
   List<Thread> _heartbeatThreads = [];
   int? _clusterLeaderId;
@@ -48,6 +48,8 @@ public class ServerNode : IServerNode
       _state = ServerNodeState.CANDIDATE;
     }
 
+    _term++;
+    _hasVotedInTerm[_term] = false;
     restartElectionFields();
 
     await runElectionForYourselfAsync();
@@ -55,8 +57,6 @@ public class ServerNode : IServerNode
 
   void restartElectionFields()
   {
-    _term++;
-    _hasVotedInTerm[_term] = false;
     _votesForMyself = 1;
     _votesRejected = 0;
     _electionTimer = Utils.NewElectionTimer();
@@ -119,6 +119,7 @@ public class ServerNode : IServerNode
       stopAllHeartBeatThreads();
     }
 
+    _term = arguments.Term;
     restartElectionFields();
 
     await Task.CompletedTask;

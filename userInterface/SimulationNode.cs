@@ -16,7 +16,7 @@ public class SimulationNode : IServerNode
 
   public int Term => _innerServerNode.Term;
 
-  public int ElectionTimerInterval => _innerServerNode.ElectionTimerInterval;
+  public System.Timers.Timer ElectionTimer => _innerServerNode.ElectionTimer;
 
   public int? ClusterLeaderId => _innerServerNode.ClusterLeaderId;
 

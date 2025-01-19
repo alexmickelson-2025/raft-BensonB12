@@ -13,13 +13,17 @@ Welcome to your new app.
 <div class="row">
   @foreach (var simulationNode in simulationNodes)
   {
-    <div class="p-3 col-4">
+    <div class="col m-2 rounded border border-2 p-2">
       <div>
-        @simulationNode.Id
-        <div>
-          @simulationNode.State
-        </div>
+        My Id is @simulationNode.Id
       </div>
+      <div>
+        My State is @simulationNode.State
+      </div>
+      <div>
+        The Term is @simulationNode.Term
+      </div>
+      <div>The current leader is @simulationNode.ClusterLeaderId</div>
     </div>
   }
 </div>
