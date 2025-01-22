@@ -44,4 +44,14 @@ public class SimulationNode : IServerNode
   {
     return _innerServerNode.ThrowBalletForAsync(id, term);
   }
+
+  public Task ReceiveAppendEntriesAsync(int id, int term)
+  {
+    return _innerServerNode.ReceiveAppendEntriesAsync(id, term);
+  }
+
+  public Task AppendEntryResponseAsync(int id, bool rejected)
+  {
+    return _innerServerNode.AppendEntryResponseAsync(id, rejected);
+  }
 }

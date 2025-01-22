@@ -60,6 +60,7 @@ public class ServerNode : IServerNode
     _votesForMyself = 1;
     _votesRejected = 0;
     _electionTimer = Utils.NewElectionTimer();
+    _electionTimer.Elapsed += async (sender, e) => await electionTimedOutProcedureAsync(sender, e);
   }
 
   async Task runElectionForYourselfAsync()
@@ -204,5 +205,16 @@ public class ServerNode : IServerNode
   {
     _state = ServerNodeState.DOWN;
     stopAllHeartBeatThreads();
+  }
+
+  public async Task ReceiveAppendEntriesAsync(int id, int term)
+  {
+    _clusterLeaderId = id;
+    await Task.CompletedTask;
+  }
+
+  public async Task AppendEntryResponseAsync(int id, bool rejected)
+  {
+    await Task.CompletedTask;
   }
 }

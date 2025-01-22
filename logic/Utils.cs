@@ -11,6 +11,8 @@ public static class Utils
   {
     int randomElectionTime = Random.Shared.Next(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
 
+    
+
     return new(randomElectionTime)
     {
       AutoReset = false,

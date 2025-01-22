@@ -1,12 +1,12 @@
 using Logic;
 using FluentAssertions;
 using NSubstitute;
-using System.Threading.Tasks;
 namespace Tests;
 
 public class ServerNodeTest
 {
     const int _generalBufferTime = 15;
+
     /// <summary>
     /// Testing #1
     /// </summary>
@@ -14,11 +14,12 @@ public class ServerNodeTest
     public void WhenALeaderIsActiveItSendsAHeartbeatWithinFiftyMilliseconds()
     {
         // Given
+        int minimumNumberOfHeartbeats = 3;
         ServerNode leaderNode = new();
         IServerNode followerServer = Substitute.For<IServerNode>();
         followerServer.Id.Returns(1);
         followerServer
-            .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
+            .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
             .Do(async _ =>
             {
                 await leaderNode.AcceptVoteAsync(true);
@@ -29,10 +30,13 @@ public class ServerNodeTest
         // LeaderNode Becomes Leader and has time to send heartbeat
         Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
 
-        leaderNode.KillServer();
+        for (int i = 0; i < minimumNumberOfHeartbeats; i++)
+        {
+            Thread.Sleep(Constants.HEARTBEAT_PAUSE);
+        }
 
         // Then
-        followerServer.Received().ReceiveHeartBeatAsync(Arg.Any<HeartbeatArguments>());
+        followerServer.ReceivedCalls().Should().HaveCountGreaterThanOrEqualTo(minimumNumberOfHeartbeats + 1);
     }
 
     /// <summary>
@@ -200,7 +204,7 @@ public class ServerNodeTest
         followerOne.Id.Returns(1);
         followerTwo.Id.Returns(2);
         followerOne
-            .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
+            .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
             .Do(async _ =>
             {
                 await leaderNode.AcceptVoteAsync(true);
@@ -295,6 +299,9 @@ public class ServerNodeTest
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
     }
 
+    /// <summary>
+    /// Testing # 14
+    /// </summary>
     [Fact]
     public async Task ServerNodeRespondsNoToAnotherVoteInSameTerm()
     {
@@ -315,6 +322,111 @@ public class ServerNodeTest
 
         // Then
         await candidateNodeTwo.Received().AcceptVoteAsync(false);
+    }
+
+    /// <summary>
+    /// Testing #15
+    /// </summary>
+    [Fact]
+    public async Task ServerVotesInEarlierTermButIsAskedToVoteInAHigherTermStillSaysYes()
+    {
+        // Given
+        int candidateOneId = 1;
+        int candidateTwoId = 2;
+        int term = 3;
+        ServerNode server = new();
+        IServerNode candidateNodeOne = Substitute.For<IServerNode>();
+        IServerNode candidateNodeTwo = Substitute.For<IServerNode>();
+        candidateNodeOne.Id.Returns(candidateOneId);
+        candidateNodeTwo.Id.Returns(candidateTwoId);
+        server.AddServersToServersCluster([candidateNodeOne, candidateNodeTwo]);
+
+        // When
+        await server.ThrowBalletForAsync(candidateOneId, term);
+        await server.ThrowBalletForAsync(candidateTwoId, term + 1);
+
+        // Then
+        await candidateNodeTwo.Received().AcceptVoteAsync(true);
+    }
+
+    /// <summary>
+    /// Testing #16
+    /// </summary>
+    [Fact]
+    public void GivenACandidateStartsAnElectionAndThenTheirTimerRunsOutNewElectionHasStarted()
+    {
+        // Given
+        ServerNode server = new();
+        IServerNode serverMock = Substitute.For<IServerNode>();
+        server.AddServersToServersCluster([serverMock]);
+
+        // When
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+        int firstCandidateTerm = server.Term;
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+
+        // Then
+        server.State.Should().Be(ServerNodeState.CANDIDATE);
+        server.Term.Should().BeGreaterThan(firstCandidateTerm);
+    }
+
+    /// <summary>
+    /// Testing #17
+    /// </summary>
+    [Fact]
+    public void WhenAFollowerReceivesAppendEntriesItSendsAResponse()
+    {
+        // Given
+        int leaderId = 1;
+        ServerNode server = new();
+        IServerNode leaderNode = Substitute.For<IServerNode>();
+        leaderNode.Id.Returns(leaderId);
+        server.AddServersToServersCluster([leaderNode]);
+
+        // When
+        server.ReceiveAppendEntriesAsync(leaderId, 1);
+
+        // Then
+        leaderNode.Received().AppendEntryResponseAsync(server.Id, true);
+    }
+
+    /// <summary>
+    /// Testing #18
+    /// </summary>
+    [Fact]
+    public void GivenCandidateReceivesAppendEntriesCandidateRejects()
+    {
+        // Given
+
+        // When
+
+        // Then
+    }
+
+    /// <summary>
+    /// Testing #19
+    /// </summary>
+    [Fact]
+    public void WhenACandidateWinsAnElectionItImmediatelySendsAHeartBeat()
+    {
+        // Given
+        ServerNode leaderNode = new();
+        IServerNode followerServer = Substitute.For<IServerNode>();
+        followerServer.Id.Returns(1);
+        followerServer
+            .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
+            .Do(async _ =>
+            {
+                await leaderNode.AcceptVoteAsync(true);
+            });
+        leaderNode.AddServersToServersCluster([followerServer]);
+
+        // When
+        // LeaderNode Becomes Leader and has time to send heartbeat
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+
+        // Then
+        followerServer.Received().ReceiveHeartBeatAsync(Arg.Any<HeartbeatArguments>());
     }
 
     /// <summary>
