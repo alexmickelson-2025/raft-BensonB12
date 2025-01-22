@@ -1,5 +1,6 @@
 using logic;
 using FluentAssertions;
+using NSubstitute;
 
 namespace tests;
 
@@ -207,5 +208,27 @@ public class ServerNodeTest
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
+    }
+
+    /// <summary>
+    /// Test for 5.3 log replication assignment
+    /// </summary>
+    [Fact]
+    public void AfterALeaderHasGottenALogCommandAllServersAreUpAfterEnoughTimeForTheServersToReceiveItTheyAllHaveTheSameLog()
+    {
+        // Given
+        IServerNode mockServerOne = Substitute.For<IServerNode>();
+        IServerNode mockServerTwo = Substitute.For<IServerNode>();
+        ServerNode leaderNode = new();
+        leaderNode.AddServersToServersCluster([mockServerOne, mockServerTwo]);
+
+        // When
+        leaderNode.AcceptLogAsync("one");
+        Thread.Sleep(300);
+
+        // Then
+        leaderNode.Logs.Should().Be(["one"]);
+        mockServerOne.Received().AppendEtries("one");
+        mockServerTwo.Received().AppendEtries("one");
     }
 }
