@@ -1,6 +1,7 @@
 using Logic;
 using FluentAssertions;
 using NSubstitute;
+using System.Threading.Tasks;
 namespace Tests;
 
 public class ServerNodeTest
@@ -17,7 +18,7 @@ public class ServerNodeTest
         IServerNode followerServer = Substitute.For<IServerNode>();
         followerServer.Id.Returns(1);
         followerServer
-            .When(server => server.ThrowBalletFor(Arg.Any<int>()))
+            .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
             .Do(async _ =>
             {
                 await leaderNode.AcceptVoteAsync(true);
@@ -186,7 +187,6 @@ public class ServerNodeTest
         server.State.Should().Be(ServerNodeState.LEADER);
     }
 
-    // Skipping Tests 10, 11 because they seem to be out of order of my criteria / implementation
     /// <summary>
     /// Tests #9
     /// </summary>
@@ -200,7 +200,7 @@ public class ServerNodeTest
         followerOne.Id.Returns(1);
         followerTwo.Id.Returns(2);
         followerOne
-            .When(server => server.ThrowBalletFor(Arg.Any<int>()))
+            .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
             .Do(async _ =>
             {
                 await leaderNode.AcceptVoteAsync(true);
@@ -214,6 +214,25 @@ public class ServerNodeTest
 
         // Then
         leaderNode.State.Should().Be(ServerNodeState.LEADER);
+    }
+
+    // Skipping Tests 10, 11 because they seem to be out of order of my criteria / implementation
+
+    [Fact]
+    public async Task FollowerThatHasNotVotedAndIsInEarlierTermSendsYes()
+    {
+        // Given
+        int leaderId = 1;
+        ServerNode server = new();
+        IServerNode leaderNode = Substitute.For<IServerNode>();
+        leaderNode.Id.Returns(leaderId);
+        server.AddServersToServersCluster([leaderNode]);
+
+        // When
+        await server.ThrowBalletForAsync(leaderId, server.Term + 1);
+
+        // Then
+        await leaderNode.Received().AcceptVoteAsync(true);
     }
 
 

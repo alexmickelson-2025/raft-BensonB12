@@ -40,8 +40,8 @@ public class SimulationNode : IServerNode
     return _innerServerNode.AcceptVoteAsync(inSupport);
   }
 
-  public Task ThrowBalletFor(int id)
+  public Task ThrowBalletForAsync(int id, int term)
   {
-    return _innerServerNode.ThrowBalletFor(id);
+    return _innerServerNode.ThrowBalletForAsync(id, term);
   }
 }

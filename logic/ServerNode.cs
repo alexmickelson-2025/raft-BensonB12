@@ -153,15 +153,15 @@ public class ServerNode : IServerNode
     // Do I become a follower? Or do I wait for a heartbeat?
   }
 
-  public async Task ThrowBalletFor(int id)
+  public async Task ThrowBalletForAsync(int id, int term)
   {
-    if (_hasVotedInTerm[_term])
+    if (_hasVotedInTerm.TryGetValue(term, out var value) && value)
     {
-      await registerVoteToServerAsync(true, id);
+      await registerVoteToServerAsync(false, id, term);
     }
     else
     {
-      await registerVoteToServerAsync(false, id);
+      await registerVoteToServerAsync(true, id, term);
     }
   }
 
@@ -171,18 +171,18 @@ public class ServerNode : IServerNode
 
     if (receivingNode is not null)
     {
-      await receivingNode.ThrowBalletFor(_id); // Can only ask for a vote once per term
+      await receivingNode.ThrowBalletForAsync(_id, _term); // Can only ask for a vote once per term
     }
   }
 
-  async Task registerVoteToServerAsync(bool inFavor, int id)
+  async Task registerVoteToServerAsync(bool inFavor, int id, int newTerm)
   {
     IServerNode? receivingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
 
     if (receivingNode is not null)
     {
       await receivingNode.AcceptVoteAsync(inFavor); // Can only send the vote once per term
-      _hasVotedInTerm[_term] = true;
+      _hasVotedInTerm[newTerm] = true;
     }
   }
 
