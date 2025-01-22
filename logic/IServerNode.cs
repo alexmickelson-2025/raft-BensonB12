@@ -13,5 +13,5 @@ public interface IServerNode
   Task AcceptVoteAsync(bool inSupport);
   Task ThrowBalletForAsync(int id, int term);
   Task ReceiveAppendEntriesAsync(int id, int term);
-  Task AppendEntryResponseAsync(int id, bool rejected);
+  Task AppendEntryResponseAsync(int id, bool applied);
 }

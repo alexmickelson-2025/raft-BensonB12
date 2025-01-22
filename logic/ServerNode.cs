@@ -104,6 +104,11 @@ public class ServerNode : IServerNode
 
   public async Task ReceiveHeartBeatAsync(HeartbeatArguments arguments)
   {
+    if (arguments.Term < _term)
+    {
+      return;
+    }
+
     _electionTimer.Stop();
     _electionTimer.Start();
 
@@ -210,7 +215,30 @@ public class ServerNode : IServerNode
   public async Task ReceiveAppendEntriesAsync(int id, int term)
   {
     IServerNode leaderNode = _otherServerNodesInCluster.Single(server => server.Id == id);
+
+    if (term < _term && _state == ServerNodeState.CANDIDATE)
+    {
+      await leaderNode.AppendEntryResponseAsync(_id, false);
+    }
+
     _clusterLeaderId = id;
+    _electionTimer.Stop();
+    _electionTimer.Start();
+
+    ServerNodeState oldState = _state;
+    _state = ServerNodeState.FOLLOWER;
+    // Maybe I should validate that the serverNodeId is in my cluster
+
+    if (oldState == ServerNodeState.LEADER)
+    {
+      stopAllHeartBeatThreads();
+    }
+
+    _term = term;
+    restartElectionFields();
+
+    await Task.CompletedTask;
+
     await leaderNode.AppendEntryResponseAsync(_id, true);
   }
 

@@ -1,4 +1,5 @@
 ﻿@using Logic;
+@using UserInterface
 @rendermode InteractiveServer
 @page "/"
 
@@ -11,7 +12,7 @@ Welcome to your new app.
 <button @onclick="startSimulation">Start</button>
 
 <div class="row">
-  @foreach (var simulationNode in simulationNodes)
+  @foreach (SimulationNode simulationNode in simulationNodes)
   {
     <div class="col m-2 rounded border border-2 p-2">
       <div>

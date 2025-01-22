@@ -167,7 +167,7 @@ public class ServerNodeTest
         for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME / waitTime) + 1; i++)
         {
             Thread.Sleep(waitTime);
-            await followerServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, 1));
+            await followerServer.ReceiveHeartBeatAsync(new HeartbeatArguments(followerServer.Term + 1, 1));
         }
 
         // Then
@@ -395,13 +395,21 @@ public class ServerNodeTest
     /// Testing #18
     /// </summary>
     [Fact]
-    public void GivenCandidateReceivesAppendEntriesCandidateRejects()
+    public async Task GivenCandidateReceivesAppendEntriesCandidateRejects()
     {
         // Given
+        int leaderId = 1;
+        ServerNode server = new();
+        IServerNode leaderNode = Substitute.For<IServerNode>();
+        leaderNode.Id.Returns(leaderId);
+        server.AddServersToServersCluster([leaderNode]);
 
         // When
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+        await server.ReceiveAppendEntriesAsync(leaderId, 0);
 
         // Then
+        await leaderNode.Received().AppendEntryResponseAsync(server.Id, false);
     }
 
     /// <summary>
