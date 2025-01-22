@@ -209,8 +209,9 @@ public class ServerNode : IServerNode
 
   public async Task ReceiveAppendEntriesAsync(int id, int term)
   {
+    IServerNode leaderNode = _otherServerNodesInCluster.Single(server => server.Id == id);
     _clusterLeaderId = id;
-    await Task.CompletedTask;
+    await leaderNode.AppendEntryResponseAsync(_id, true);
   }
 
   public async Task AppendEntryResponseAsync(int id, bool rejected)

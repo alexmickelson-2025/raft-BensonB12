@@ -1,6 +1,7 @@
 using Logic;
 using FluentAssertions;
 using NSubstitute;
+using System.Threading.Tasks;
 namespace Tests;
 
 public class ServerNodeTest
@@ -374,7 +375,7 @@ public class ServerNodeTest
     /// Testing #17
     /// </summary>
     [Fact]
-    public void WhenAFollowerReceivesAppendEntriesItSendsAResponse()
+    public async Task WhenAFollowerReceivesAppendEntriesItSendsAResponse()
     {
         // Given
         int leaderId = 1;
@@ -384,10 +385,10 @@ public class ServerNodeTest
         server.AddServersToServersCluster([leaderNode]);
 
         // When
-        server.ReceiveAppendEntriesAsync(leaderId, 1);
+        await server.ReceiveAppendEntriesAsync(leaderId, 1);
 
         // Then
-        leaderNode.Received().AppendEntryResponseAsync(server.Id, true);
+        await leaderNode.Received().AppendEntryResponseAsync(server.Id, true);
     }
 
     /// <summary>
