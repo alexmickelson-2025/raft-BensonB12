@@ -15,13 +15,14 @@ public class ServerNodeTest
         // Given
         ServerNode leaderNode = new();
         IServerNode followerServer = Substitute.For<IServerNode>();
-        leaderNode.AddServersToServersCluster([followerServer]);
+        followerServer.Id.Returns(1);
         followerServer
             .When(server => server.ThrowBalletFor(Arg.Any<int>()))
             .Do(async _ =>
             {
                 await leaderNode.AcceptVoteAsync(true);
             });
+        leaderNode.AddServersToServersCluster([followerServer]);
 
         // When
         // LeaderNode Becomes Leader and has time to send heartbeat
@@ -185,7 +186,36 @@ public class ServerNodeTest
         server.State.Should().Be(ServerNodeState.LEADER);
     }
 
-    /// Skipping Tests 9, 10, 11 because they seem to be out of order of my criteria / implementation
+    // Skipping Tests 10, 11 because they seem to be out of order of my criteria / implementation
+    /// <summary>
+    /// Tests #9
+    /// </summary>
+    [Fact]
+    public void CandidateReceivesMajorityVotesWhileWaitingForUnresponsiveNodeStillBecomesLeader()
+    {
+        // Given
+        ServerNode leaderNode = new();
+        IServerNode followerOne = Substitute.For<IServerNode>();
+        IServerNode followerTwo = Substitute.For<IServerNode>();
+        followerOne.Id.Returns(1);
+        followerTwo.Id.Returns(2);
+        followerOne
+            .When(server => server.ThrowBalletFor(Arg.Any<int>()))
+            .Do(async _ =>
+            {
+                await leaderNode.AcceptVoteAsync(true);
+            });
+
+        leaderNode.AddServersToServersCluster([followerOne, followerTwo]);
+
+
+        // When
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+
+        // Then
+        leaderNode.State.Should().Be(ServerNodeState.LEADER);
+    }
+
 
     /// <summary>
     /// Testing #12
