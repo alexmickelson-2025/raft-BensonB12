@@ -216,8 +216,9 @@ public class ServerNodeTest
         leaderNode.State.Should().Be(ServerNodeState.LEADER);
     }
 
-    // Skipping Tests 10, 11 because they seem to be out of order of my criteria / implementation
-
+    /// <summary>
+    /// Testing #10
+    /// </summary>
     [Fact]
     public async Task FollowerThatHasNotVotedAndIsInEarlierTermSendsYes()
     {
@@ -235,6 +236,22 @@ public class ServerNodeTest
         await leaderNode.Received().AcceptVoteAsync(true);
     }
 
+    /// <summary>
+    /// Testing #11
+    /// </summary>
+    [Fact]
+    public void CandidateVotesForItself()
+    {
+        // Given
+        ServerNode candidate = new();
+
+        // When
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+
+        // Then
+        // If it is the only node, then majority must be one, therefore it must have received at least one vote, from itself
+        candidate.State.Should().Be(ServerNodeState.LEADER);
+    }
 
     /// <summary>
     /// Testing #12
