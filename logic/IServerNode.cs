@@ -1,4 +1,4 @@
-namespace logic;
+namespace Logic;
 
 public interface IServerNode
 {

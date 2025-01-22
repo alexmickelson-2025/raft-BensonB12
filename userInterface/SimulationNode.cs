@@ -1,6 +1,6 @@
-using logic;
+using Logic;
 
-namespace userInterface;
+namespace UserInterface;
 
 public class SimulationNode : IServerNode
 {

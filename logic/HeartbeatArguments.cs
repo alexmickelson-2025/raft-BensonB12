@@ -1,9 +1,9 @@
-namespace logic;
+namespace Logic;
 
 public class HeartbeatArguments
 {
-  public int Term;
-  public int ServerNodeId;
+  public int Term { get; }
+  public int ServerNodeId { get; }
   public HeartbeatArguments(int term, int serverNodeId)
   {
     Term = term;

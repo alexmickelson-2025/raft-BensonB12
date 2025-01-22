@@ -1,5 +1,5 @@
 
-namespace logic;
+namespace Logic;
 
 public static class Constants
 {

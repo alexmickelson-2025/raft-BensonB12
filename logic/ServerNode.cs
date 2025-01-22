@@ -1,6 +1,6 @@
 ﻿using System.Timers;
 
-namespace logic;
+namespace Logic;
 
 public class ServerNode : IServerNode
 {

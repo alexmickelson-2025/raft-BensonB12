@@ -1,9 +1,7 @@
-using logic;
+using Logic;
 using FluentAssertions;
 using NSubstitute;
-using System.Threading.Tasks;
-
-namespace tests;
+namespace Tests;
 
 public class ServerNodeTest
 {
