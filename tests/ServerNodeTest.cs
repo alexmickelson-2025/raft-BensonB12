@@ -257,7 +257,7 @@ public class ServerNodeTest
     /// Testing #12
     /// </summary>
     [Fact]
-    public async Task GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageItBecomesAFollowerAndLoses()
+    public async Task GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageFromALaterTermItBecomesAFollowerAndLoses()
     {
         // Given
         ServerNode candidateServer = new();
@@ -268,10 +268,53 @@ public class ServerNodeTest
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, 1));
+        await candidateServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, candidateServer.Term + 1));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
+    }
+
+    /// <summary>
+    /// Testing #13
+    /// </summary>
+    [Fact]
+    public async Task GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageFromTheSameTermItBecomesAFollowerAndLoses()
+    {
+        // Given
+        ServerNode candidateServer = new();
+
+        // When
+        while (candidateServer.State == ServerNodeState.FOLLOWER)
+        {
+            // Do I do something here?
+        }
+
+        await candidateServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, candidateServer.Term));
+
+        // Then
+        candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
+    }
+
+    [Fact]
+    public async Task ServerNodeRespondsNoToAnotherVoteInSameTerm()
+    {
+        // Given
+        int candidateOneId = 1;
+        int candidateTwoId = 2;
+        int term = 3;
+        ServerNode server = new();
+        IServerNode candidateNodeOne = Substitute.For<IServerNode>();
+        IServerNode candidateNodeTwo = Substitute.For<IServerNode>();
+        candidateNodeOne.Id.Returns(candidateOneId);
+        candidateNodeTwo.Id.Returns(candidateTwoId);
+        server.AddServersToServersCluster([candidateNodeOne, candidateNodeTwo]);
+
+        // When
+        await server.ThrowBalletForAsync(candidateOneId, term);
+        await server.ThrowBalletForAsync(candidateTwoId, term);
+
+        // Then
+        await candidateNodeTwo.Received().AcceptVoteAsync(false);
     }
 
     /// <summary>
