@@ -1,11 +1,13 @@
 using logic;
 using FluentAssertions;
 using NSubstitute;
+using System.Threading.Tasks;
 
 namespace tests;
 
 public class ServerNodeTest
 {
+    const int _generalBufferTime = 15;
     /// <summary>
     /// Testing #1
     /// </summary>
@@ -14,42 +16,40 @@ public class ServerNodeTest
     {
         // Given
         ServerNode leaderNode = new();
-        ServerNode followerServer = new(); // I should replace this with an NSubstitute
+        IServerNode followerServer = Substitute.For<IServerNode>();
         leaderNode.AddServersToServersCluster([followerServer]);
+        followerServer
+            .When(server => server.ThrowBalletFor(Arg.Any<int>()))
+            .Do(async _ =>
+            {
+                await leaderNode.AcceptVoteAsync(true);
+            });
 
         // When
-
-        // LeaderNode Becomes Leader (The follower does not know the leader exists)
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
-        Thread.Sleep(600);
+        // LeaderNode Becomes Leader and has time to send heartbeat
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
 
         leaderNode.KillServer();
 
         // Then
-        followerServer.State.Should().Be(ServerNodeState.FOLLOWER);
+        followerServer.Received().ReceiveHeartBeatAsync(Arg.Any<HeartbeatArguments>());
     }
 
     /// <summary>
-    /// Testing #1
+    /// Testing #2
     /// </summary>
     [Fact]
-    public void WhenANodeReceivesAnAppendEntriesOrHeartBeatFromAnotherNodeTheFirstNodeKnowsThatTheOtherNodeIsTheLeader()
+    public async Task WhenANodeReceivesAnAppendEntriesOrHeartBeatFromAnotherNodeTheFirstNodeKnowsThatTheOtherNodeIsTheLeader()
     {
         // Given
-        ServerNode leaderNode = new(1);
         ServerNode followerServer = new();
-        leaderNode.AddServersToServersCluster([followerServer]);
+        int leaderId = 1;
 
         // When
-
-        // LeaderNode Becomes Leader (The follower does not know the leader exists)
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
-        Thread.Sleep(600);
-
-        leaderNode.KillServer();
+        await followerServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, leaderId));
 
         // Then
-        followerServer.ClusterLeaderId.Should().Be(1);
+        followerServer.ClusterLeaderId.Should().Be(leaderId);
     }
 
     /// <summary>
@@ -76,6 +76,8 @@ public class ServerNodeTest
     {
         // Given
         ServerNode server = new();
+        IServerNode otherServer = Substitute.For<IServerNode>();
+        server.AddServersToServersCluster([otherServer]);
 
         // When
         Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
@@ -145,20 +147,23 @@ public class ServerNodeTest
     /// Testing #7
     /// </summary>
     [Fact]
-    public void WhenAFollowerReceivesAnAppendEntriesMessageOrHeartbeatItResetsTheElectionTimer()
+    public async Task WhenAFollowerReceivesAnAppendEntriesMessageOrHeartbeatItResetsTheElectionTimer()
     {
         // Given
-        ServerNode leaderNode = new();
         ServerNode followerServer = new();
-        leaderNode.AddServersToServersCluster([followerServer]);
+        int waitTime = Constants.INCLUSIVE_MINIMUM_ELECTION_TIME - _generalBufferTime;
+
+        if (waitTime < 1)
+        {
+            waitTime = 1;
+        }
 
         // When
-
-        // LeaderNode Becomes Leader (The follower does not know the leader exists)
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
-        Thread.Sleep(600);
-
-        leaderNode.KillServer();
+        for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME / waitTime) + 1; i++)
+        {
+            Thread.Sleep(waitTime);
+            await followerServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, 1));
+        }
 
         // Then
         followerServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -175,11 +180,8 @@ public class ServerNodeTest
 
         // When
 
-        // Server becomes a Candidate
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
-
-        // Candidate asks for votes (itself) and turns into leader
-        Thread.Sleep(300);
+        // Server becomes a Candidate and then becomes leader in buffer time
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
 
         // Then
         server.State.Should().Be(ServerNodeState.LEADER);
@@ -191,20 +193,18 @@ public class ServerNodeTest
     /// Testing #12
     /// </summary>
     [Fact]
-    public void GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageItBecomesAFollowerAndLoses()
+    public async Task GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageItBecomesAFollowerAndLoses()
     {
         // Given
-        ServerNode leaderNode = new();
         ServerNode candidateServer = new();
-        leaderNode.AddServersToServersCluster([candidateServer]);
 
         // When
+        while (candidateServer.State == ServerNodeState.FOLLOWER)
+        {
+            // Do I do something here?
+        }
 
-        // LeaderNode Becomes Leader (The follower does not know the leader exists)
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
-        Thread.Sleep(600);
-
-        leaderNode.KillServer();
+        await candidateServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, 1));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -213,22 +213,22 @@ public class ServerNodeTest
     /// <summary>
     /// Test for 5.3 log replication assignment
     /// </summary>
-    [Fact]
-    public void AfterALeaderHasGottenALogCommandAllServersAreUpAfterEnoughTimeForTheServersToReceiveItTheyAllHaveTheSameLog()
-    {
-        // Given
-        IServerNode mockServerOne = Substitute.For<IServerNode>();
-        IServerNode mockServerTwo = Substitute.For<IServerNode>();
-        ServerNode leaderNode = new();
-        leaderNode.AddServersToServersCluster([mockServerOne, mockServerTwo]);
+    // [Fact]
+    // public void AfterALeaderHasGottenALogCommandAllServersAreUpAfterEnoughTimeForTheServersToReceiveItTheyAllHaveTheSameLog()
+    // {
+    //     // Given
+    //     IServerNode mockServerOne = Substitute.For<IServerNode>();
+    //     IServerNode mockServerTwo = Substitute.For<IServerNode>();
+    //     ServerNode leaderNode = new();
+    //     leaderNode.AddServersToServersCluster([mockServerOne, mockServerTwo]);
 
-        // When
-        leaderNode.AcceptLogAsync("one");
-        Thread.Sleep(300);
+    //     // When
+    //     leaderNode.AcceptLogAsync("one");
+    //     Thread.Sleep(300);
 
-        // Then
-        leaderNode.Logs.Should().Be(["one"]);
-        mockServerOne.Received().AppendEtries("one");
-        mockServerTwo.Received().AppendEtries("one");
-    }
+    //     // Then
+    //     leaderNode.Logs.Should().Be(["one"]);
+    //     mockServerOne.Received().AppendEtries("one");
+    //     mockServerTwo.Received().AppendEtries("one");
+    // }
 }

@@ -96,11 +96,7 @@ public class ServerNode : IServerNode
 
   async Task sendHeartbeatsToServerNodeAsync(IServerNode server)
   {
-    HeartbeatArguments heartbeatArguments = new()
-    {
-      Term = _term,
-      ServerNodeId = _id
-    };
+    HeartbeatArguments heartbeatArguments = new(_term, _id);
 
     await server.ReceiveHeartBeatAsync(heartbeatArguments);
   }
@@ -112,6 +108,7 @@ public class ServerNode : IServerNode
 
     ServerNodeState oldState = _state;
     _state = ServerNodeState.FOLLOWER;
+    // Maybe I should validate that the serverNodeId is in my cluster
     _clusterLeaderId = arguments.ServerNodeId;
 
     if (oldState == ServerNodeState.LEADER)
