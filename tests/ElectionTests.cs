@@ -279,7 +279,7 @@ public class ElectionTests
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, candidateServer.Term + 1));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(candidateServer.Term + 1, leaderId));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -303,7 +303,7 @@ public class ElectionTests
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, candidateServer.Term));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(candidateServer.Term, leaderId));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -390,7 +390,7 @@ public class ElectionTests
         ServerNode server = new([leaderServer]);
 
         // When
-        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
+        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, leaderId));
 
         // Then
         await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, true);
@@ -410,7 +410,7 @@ public class ElectionTests
 
         // When
         waitForElectionTimerToRunOut();
-        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 0));
+        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(0, leaderId));
 
         // Then
         await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, false);
