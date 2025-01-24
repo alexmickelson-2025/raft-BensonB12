@@ -45,11 +45,6 @@ public class SimulationNode : IServerNode
     return _innerServerNode.ThrowBalletForAsync(id, term);
   }
 
-  public Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(int id, int term)
-  {
-    return _innerServerNode.ReceiveLeaderToFollowerRemoteProcedureCallAsync(id, term);
-  }
-
   public Task LeaderToFollowerRemoteProcedureCallResponse(int id, bool rejected)
   {
     return _innerServerNode.LeaderToFollowerRemoteProcedureCallResponse(id, rejected);
