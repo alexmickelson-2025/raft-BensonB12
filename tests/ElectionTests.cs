@@ -20,7 +20,7 @@ public class ElectionTests
         IServerNode followerServer = createIServerNodeSubstituteWithId(1);
 
         followerServer
-            .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
+            .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
             .Do(async _ =>
             {
                 await leaderServer.AcceptVoteAsync(true);
@@ -53,7 +53,7 @@ public class ElectionTests
         ServerNode followerServer = new([leaderServer]);
 
         // When
-        await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, leaderId));
+        await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
 
         // Then
         followerServer.ClusterLeaderId.Should().Be(leaderId);
@@ -142,7 +142,7 @@ public class ElectionTests
         // Given
         ServerNode server = new();
 
-        int firstTerm = server.Term;
+        uint firstTerm = server.Term;
 
         // When
         Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
@@ -173,7 +173,7 @@ public class ElectionTests
         for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME / waitTime) + 1; i++)
         {
             Thread.Sleep(waitTime);
-            await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(followerServer.Term + 1, leaderId));
+            await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, followerServer.Term + 1));
         }
 
         // Then
@@ -208,7 +208,7 @@ public class ElectionTests
         IServerNode followerTwo = createIServerNodeSubstituteWithId(2);
 
         followerOne
-            .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
+            .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
             .Do(async _ =>
             {
                 await leaderServer.AcceptVoteAsync(true);
@@ -279,7 +279,7 @@ public class ElectionTests
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(candidateServer.Term + 1, leaderId));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, candidateServer.Term + 1));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -303,7 +303,7 @@ public class ElectionTests
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(candidateServer.Term, leaderId));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, candidateServer.Term));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -316,7 +316,7 @@ public class ElectionTests
     public async Task ServerRespondsNoToAnotherVoteInSameTerm()
     {
         // Given
-        int term = 3;
+        uint term = 3;
         int candidateOneId = 1;
         int candidateTwoId = 2;
 
@@ -339,7 +339,7 @@ public class ElectionTests
     public async Task ServerVotesInEarlierTermButIsAskedToVoteInAHigherTermStillSaysYes()
     {
         // Given
-        int term = 3;
+        uint term = 3;
         int candidateOneId = 1;
         int candidateTwoId = 2;
 
@@ -368,7 +368,7 @@ public class ElectionTests
         // When
         waitForElectionTimerToRunOut();
 
-        int firstCandidateTerm = server.Term;
+        uint firstCandidateTerm = server.Term;
 
         waitForElectionTimerToRunOut();
 
@@ -390,7 +390,7 @@ public class ElectionTests
         ServerNode server = new([leaderServer]);
 
         // When
-        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, leaderId));
+        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
 
         // Then
         await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, true);
@@ -410,7 +410,7 @@ public class ElectionTests
 
         // When
         waitForElectionTimerToRunOut();
-        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(0, leaderId));
+        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 0));
 
         // Then
         await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, false);
@@ -427,7 +427,7 @@ public class ElectionTests
 
         IServerNode followerServer = createIServerNodeSubstituteWithId(1);
         followerServer
-            .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
+            .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
             .Do(async _ =>
             {
                 await leaderServer.AcceptVoteAsync(true);

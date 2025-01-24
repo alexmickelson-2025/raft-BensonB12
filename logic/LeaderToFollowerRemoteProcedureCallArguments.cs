@@ -2,11 +2,11 @@ namespace Logic;
 
 public class LeaderToFollowerRemoteProcedureCallArguments
 {
-  public int Term { get; }
+  public uint Term { get; }
   public int ServerNodeId { get; }
-  public LeaderToFollowerRemoteProcedureCallArguments(int term, int serverNodeId)
+  public LeaderToFollowerRemoteProcedureCallArguments(int serverNodeId, uint term)
   {
-    Term = term;
     ServerNodeId = serverNodeId;
+    Term = term;
   }
 }

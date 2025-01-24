@@ -14,7 +14,7 @@ public class SimulationNode : IServerNode
 
   public ServerNodeState State => _innerServerNode.State;
 
-  public int Term => _innerServerNode.Term;
+  public uint Term => _innerServerNode.Term;
 
   public System.Timers.Timer ElectionTimer => _innerServerNode.ElectionTimer;
 
@@ -40,7 +40,7 @@ public class SimulationNode : IServerNode
     return _innerServerNode.AcceptVoteAsync(inSupport);
   }
 
-  public Task ThrowBalletForAsync(int id, int term)
+  public Task ThrowBalletForAsync(int id, uint term)
   {
     return _innerServerNode.ThrowBalletForAsync(id, term);
   }

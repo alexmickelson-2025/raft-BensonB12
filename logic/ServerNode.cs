@@ -10,9 +10,9 @@ public class ServerNode : IServerNode
   public int Id => _id;
   ServerNodeState _state = ServerNodeState.FOLLOWER;
   public ServerNodeState State => _state;
-  int _term = 0;
-  public int Term => _term;
-  readonly Dictionary<int, bool> _hasVotedInTerm = new() { { 0, false } };
+  uint _term = 0;
+  public uint Term => _term;
+  readonly Dictionary<uint, bool> _hasVotedInTerm = new() { { 0, false } };
   System.Timers.Timer _electionTimer = Utils.NewElectionTimer();
   public System.Timers.Timer ElectionTimer => _electionTimer;
   List<IServerNode> _otherServerNodesInCluster = [];
@@ -113,7 +113,7 @@ public class ServerNode : IServerNode
 
   async Task sendHeartbeatToServerNodeAsync(IServerNode server)
   {
-    LeaderToFollowerRemoteProcedureCallArguments heartbeatArguments = new(_term, _id);
+    LeaderToFollowerRemoteProcedureCallArguments heartbeatArguments = new(_id, _term);
 
     await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(heartbeatArguments);
   }
@@ -149,7 +149,7 @@ public class ServerNode : IServerNode
     // Do I become a follower? Or do I wait for a heartbeat?
   }
 
-  public async Task ThrowBalletForAsync(int id, int term)
+  public async Task ThrowBalletForAsync(int id, uint term)
   {
     if (_hasVotedInTerm.TryGetValue(term, out var value) && value)
     {
@@ -171,7 +171,7 @@ public class ServerNode : IServerNode
     }
   }
 
-  async Task registerVoteToServerAsync(bool inFavor, int id, int newTerm)
+  async Task registerVoteToServerAsync(bool inFavor, int id, uint newTerm)
   {
     IServerNode? receivingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
 
@@ -234,7 +234,7 @@ public class ServerNode : IServerNode
       stopAllHeartBeatThreads();
     }
 
-    _term = arguments.ServerNodeId;
+    _term = arguments.Term;
     restartElectionFields();
 
     await leaderNode.LeaderToFollowerRemoteProcedureCallResponse(_id, true);
