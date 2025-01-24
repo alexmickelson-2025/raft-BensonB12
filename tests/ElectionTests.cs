@@ -5,7 +5,7 @@ namespace Tests;
 
 public class ElectionTests
 {
-    const int _generalBufferTime = 15;
+    private const int GENERAL_BUFFER_TIME = 15;
 
     /// <summary>
     /// Testing #1
@@ -15,20 +15,21 @@ public class ElectionTests
     {
         // Given
         int minimumNumberOfHeartbeats = 3;
-        ServerNode leaderNode = new();
-        IServerNode followerServer = Substitute.For<IServerNode>();
-        followerServer.Id.Returns(1);
+
+        ServerNode leaderServer = new();
+        IServerNode followerServer = createIServerNodeSubstituteWithId(1);
+
         followerServer
             .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
             .Do(async _ =>
             {
-                await leaderNode.AcceptVoteAsync(true);
+                await leaderServer.AcceptVoteAsync(true);
             });
-        leaderNode.AddServersToServersCluster([followerServer]);
+
+        leaderServer.AddServersToServersCluster([followerServer]);
 
         // When
-        // LeaderNode Becomes Leader and has time to send heartbeat
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+        waitForElectionTimerToRunOut();
 
         for (int i = 0; i < minimumNumberOfHeartbeats; i++)
         {
@@ -46,8 +47,10 @@ public class ElectionTests
     public async Task WhenANodeReceivesAnAppendEntriesOrHeartBeatFromAnotherNodeTheFirstNodeKnowsThatTheOtherNodeIsTheLeader()
     {
         // Given
-        ServerNode followerServer = new();
         int leaderId = 1;
+
+        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        ServerNode followerServer = new([leaderServer]);
 
         // When
         await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, leaderId));
@@ -60,7 +63,7 @@ public class ElectionTests
     /// Testing #3
     /// </summary>
     [Fact]
-    public void WhenANewNodeIsInitialedItIsAFollower()
+    public void WhenANewServerIsInitialedItIsAFollower()
     {
         // Given
         ServerNode server = new();
@@ -79,9 +82,8 @@ public class ElectionTests
     public void WhenTheFollowerDoesNotGetAMessageForThreeHundredMillisecondsItStartsAnElection()
     {
         // Given
-        ServerNode server = new();
         IServerNode otherServer = Substitute.For<IServerNode>();
-        server.AddServersToServersCluster([otherServer]);
+        ServerNode server = new([otherServer]);
 
         // When
         Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
@@ -98,6 +100,7 @@ public class ElectionTests
     {
         // Given / When
         List<ServerNode> servers = [];
+
         for (int i = 0; i < 10; i++)
         {
             servers.Add(new());
@@ -116,14 +119,14 @@ public class ElectionTests
     [Fact]
     public void WhenTheElectionTimeIsResetItIsARandomValueBetweenOtherServers()
     {
-        // Given
+        // Given / When
         List<ServerNode> servers = [];
+
         for (int i = 0; i < 10; i++)
         {
             servers.Add(new());
         }
 
-        // When
         IEnumerable<IGrouping<double, ServerNode>> intervalsSet = servers.GroupBy(server => server.ElectionTimer.Interval);
 
         // Then
@@ -138,6 +141,7 @@ public class ElectionTests
     {
         // Given
         ServerNode server = new();
+
         int firstTerm = server.Term;
 
         // When
@@ -154,8 +158,11 @@ public class ElectionTests
     public async Task WhenAFollowerReceivesAnAppendEntriesMessageOrHeartbeatItResetsTheElectionTimer()
     {
         // Given
-        ServerNode followerServer = new();
-        int waitTime = Constants.INCLUSIVE_MINIMUM_ELECTION_TIME - _generalBufferTime;
+        int waitTime = Constants.INCLUSIVE_MINIMUM_ELECTION_TIME - GENERAL_BUFFER_TIME;
+        int leaderId = 1;
+
+        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        ServerNode followerServer = new([leaderServer]);
 
         if (waitTime < 1)
         {
@@ -166,7 +173,7 @@ public class ElectionTests
         for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME / waitTime) + 1; i++)
         {
             Thread.Sleep(waitTime);
-            await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(followerServer.Term + 1, 1));
+            await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(followerServer.Term + 1, leaderId));
         }
 
         // Then
@@ -183,9 +190,7 @@ public class ElectionTests
         ServerNode server = new();
 
         // When
-
-        // Server becomes a Candidate and then becomes leader in buffer time
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+        waitForElectionTimerToRunOut();
 
         // Then
         server.State.Should().Be(ServerNodeState.LEADER);
@@ -198,26 +203,25 @@ public class ElectionTests
     public void CandidateReceivesMajorityVotesWhileWaitingForUnresponsiveNodeStillBecomesLeader()
     {
         // Given
-        ServerNode leaderNode = new();
-        IServerNode followerOne = Substitute.For<IServerNode>();
-        IServerNode followerTwo = Substitute.For<IServerNode>();
-        followerOne.Id.Returns(1);
-        followerTwo.Id.Returns(2);
+        ServerNode leaderServer = new();
+        IServerNode followerOne = createIServerNodeSubstituteWithId(1);
+        IServerNode followerTwo = createIServerNodeSubstituteWithId(2);
+
         followerOne
             .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
             .Do(async _ =>
             {
-                await leaderNode.AcceptVoteAsync(true);
+                await leaderServer.AcceptVoteAsync(true);
             });
 
-        leaderNode.AddServersToServersCluster([followerOne, followerTwo]);
+        leaderServer.AddServersToServersCluster([followerOne, followerTwo]);
 
 
         // When
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+        waitForElectionTimerToRunOut();
 
         // Then
-        leaderNode.State.Should().Be(ServerNodeState.LEADER);
+        leaderServer.State.Should().Be(ServerNodeState.LEADER);
     }
 
     /// <summary>
@@ -228,16 +232,16 @@ public class ElectionTests
     {
         // Given
         int leaderId = 1;
-        ServerNode server = new();
-        IServerNode leaderNode = Substitute.For<IServerNode>();
-        leaderNode.Id.Returns(leaderId);
-        server.AddServersToServersCluster([leaderNode]);
+
+        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+
+        ServerNode server = new([leaderServer]);
 
         // When
         await server.ThrowBalletForAsync(leaderId, server.Term + 1);
 
         // Then
-        await leaderNode.Received().AcceptVoteAsync(true);
+        await leaderServer.Received().AcceptVoteAsync(true);
     }
 
     /// <summary>
@@ -250,10 +254,10 @@ public class ElectionTests
         ServerNode candidate = new();
 
         // When
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+        waitForElectionTimerToRunOut();
 
         // Then
-        // If it is the only node, then majority must be one, therefore it must have received at least one vote, from itself
+        // If it is the only server, then majority must be one, therefore it must have received at least one vote, from itself
         candidate.State.Should().Be(ServerNodeState.LEADER);
     }
 
@@ -264,7 +268,10 @@ public class ElectionTests
     public async Task GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageFromALaterTermItBecomesAFollowerAndLoses()
     {
         // Given
-        ServerNode candidateServer = new();
+        int leaderId = 1;
+
+        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        ServerNode candidateServer = new([leaderServer]);
 
         // When
         while (candidateServer.State == ServerNodeState.FOLLOWER)
@@ -272,7 +279,7 @@ public class ElectionTests
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, candidateServer.Term + 1));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, candidateServer.Term + 1));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -285,7 +292,10 @@ public class ElectionTests
     public async Task GivenACandidateServerWhenItReceivesAHeartbeatOrAppendEntriesMessageFromTheSameTermItBecomesAFollowerAndLoses()
     {
         // Given
-        ServerNode candidateServer = new();
+        int leaderId = 1;
+
+        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        ServerNode candidateServer = new([leaderServer]);
 
         // When
         while (candidateServer.State == ServerNodeState.FOLLOWER)
@@ -293,7 +303,7 @@ public class ElectionTests
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, candidateServer.Term));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, candidateServer.Term));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -303,25 +313,23 @@ public class ElectionTests
     /// Testing # 14
     /// </summary>
     [Fact]
-    public async Task ServerNodeRespondsNoToAnotherVoteInSameTerm()
+    public async Task ServerRespondsNoToAnotherVoteInSameTerm()
     {
         // Given
+        int term = 3;
         int candidateOneId = 1;
         int candidateTwoId = 2;
-        int term = 3;
-        ServerNode server = new();
-        IServerNode candidateNodeOne = Substitute.For<IServerNode>();
-        IServerNode candidateNodeTwo = Substitute.For<IServerNode>();
-        candidateNodeOne.Id.Returns(candidateOneId);
-        candidateNodeTwo.Id.Returns(candidateTwoId);
-        server.AddServersToServersCluster([candidateNodeOne, candidateNodeTwo]);
+
+        IServerNode candidateServerOne = createIServerNodeSubstituteWithId(candidateOneId);
+        IServerNode candidateServerTwo = createIServerNodeSubstituteWithId(candidateTwoId);
+        ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
         // When
         await server.ThrowBalletForAsync(candidateOneId, term);
         await server.ThrowBalletForAsync(candidateTwoId, term);
 
         // Then
-        await candidateNodeTwo.Received().AcceptVoteAsync(false);
+        await candidateServerTwo.Received().AcceptVoteAsync(false);
     }
 
     /// <summary>
@@ -331,22 +339,20 @@ public class ElectionTests
     public async Task ServerVotesInEarlierTermButIsAskedToVoteInAHigherTermStillSaysYes()
     {
         // Given
+        int term = 3;
         int candidateOneId = 1;
         int candidateTwoId = 2;
-        int term = 3;
-        ServerNode server = new();
-        IServerNode candidateNodeOne = Substitute.For<IServerNode>();
-        IServerNode candidateNodeTwo = Substitute.For<IServerNode>();
-        candidateNodeOne.Id.Returns(candidateOneId);
-        candidateNodeTwo.Id.Returns(candidateTwoId);
-        server.AddServersToServersCluster([candidateNodeOne, candidateNodeTwo]);
+
+        IServerNode candidateServerOne = createIServerNodeSubstituteWithId(candidateOneId);
+        IServerNode candidateServerTwo = createIServerNodeSubstituteWithId(candidateTwoId);
+        ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
         // When
         await server.ThrowBalletForAsync(candidateOneId, term);
         await server.ThrowBalletForAsync(candidateTwoId, term + 1);
 
         // Then
-        await candidateNodeTwo.Received().AcceptVoteAsync(true);
+        await candidateServerTwo.Received().AcceptVoteAsync(true);
     }
 
     /// <summary>
@@ -356,14 +362,15 @@ public class ElectionTests
     public void GivenACandidateStartsAnElectionAndThenTheirTimerRunsOutNewElectionHasStarted()
     {
         // Given
-        ServerNode server = new();
-        IServerNode serverMock = Substitute.For<IServerNode>();
-        server.AddServersToServersCluster([serverMock]);
+        IServerNode otherServer = Substitute.For<IServerNode>();
+        ServerNode server = new([otherServer]);
 
         // When
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+        waitForElectionTimerToRunOut();
+
         int firstCandidateTerm = server.Term;
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+
+        waitForElectionTimerToRunOut();
 
         // Then
         server.State.Should().Be(ServerNodeState.CANDIDATE);
@@ -378,16 +385,15 @@ public class ElectionTests
     {
         // Given
         int leaderId = 1;
-        ServerNode server = new();
-        IServerNode leaderNode = Substitute.For<IServerNode>();
-        leaderNode.Id.Returns(leaderId);
-        server.AddServersToServersCluster([leaderNode]);
+
+        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        ServerNode server = new([leaderServer]);
 
         // When
         await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
 
         // Then
-        await leaderNode.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, true);
+        await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, true);
     }
 
     /// <summary>
@@ -398,17 +404,16 @@ public class ElectionTests
     {
         // Given
         int leaderId = 1;
-        ServerNode server = new();
-        IServerNode leaderNode = Substitute.For<IServerNode>();
-        leaderNode.Id.Returns(leaderId);
-        server.AddServersToServersCluster([leaderNode]);
+
+        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        ServerNode server = new([leaderServer]);
 
         // When
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+        waitForElectionTimerToRunOut();
         await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 0));
 
         // Then
-        await leaderNode.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, false);
+        await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, false);
     }
 
     /// <summary>
@@ -418,22 +423,34 @@ public class ElectionTests
     public void WhenACandidateWinsAnElectionItImmediatelySendsAHeartBeat()
     {
         // Given
-        ServerNode leaderNode = new();
-        IServerNode followerServer = Substitute.For<IServerNode>();
-        followerServer.Id.Returns(1);
+        ServerNode leaderServer = new();
+
+        IServerNode followerServer = createIServerNodeSubstituteWithId(1);
         followerServer
             .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<int>()))
             .Do(async _ =>
             {
-                await leaderNode.AcceptVoteAsync(true);
+                await leaderServer.AcceptVoteAsync(true);
             });
-        leaderNode.AddServersToServersCluster([followerServer]);
+
+        leaderServer.AddServersToServersCluster([followerServer]);
 
         // When
-        // LeaderNode Becomes Leader and has time to send heartbeat
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
+        waitForElectionTimerToRunOut();
 
         // Then
         followerServer.Received().ReceiveLeaderToFollowerRemoteProcedureCallAsync(Arg.Any<LeaderToFollowerRemoteProcedureCallArguments>());
+    }
+
+    static void waitForElectionTimerToRunOut()
+    {
+        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + GENERAL_BUFFER_TIME);
+    }
+
+    static IServerNode createIServerNodeSubstituteWithId(int id)
+    {
+        IServerNode server = Substitute.For<IServerNode>();
+        server.Id.Returns(id);
+        return server;
     }
 }

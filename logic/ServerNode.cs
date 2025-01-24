@@ -23,12 +23,23 @@ public class ServerNode : IServerNode
 
   public ServerNode()
   {
-    _electionTimer.Elapsed += async (sender, e) => await electionTimedOutProcedureAsync(sender, e);
+    addElectionTimeOutProcedureEventToElectionTimer();
   }
 
   public ServerNode(int id)
   {
     _id = id;
+    addElectionTimeOutProcedureEventToElectionTimer();
+  }
+
+  public ServerNode(IEnumerable<IServerNode> otherServers)
+  {
+    addElectionTimeOutProcedureEventToElectionTimer();
+    AddServersToServersCluster(otherServers);
+  }
+
+  void addElectionTimeOutProcedureEventToElectionTimer()
+  {
     _electionTimer.Elapsed += async (sender, e) => await electionTimedOutProcedureAsync(sender, e);
   }
 
@@ -51,6 +62,7 @@ public class ServerNode : IServerNode
     _term++;
     _hasVotedInTerm[_term] = false;
     restartElectionFields();
+    restartElectionTimerWithNewRandomInterval();
 
     await runElectionForYourselfAsync();
   }
@@ -59,8 +71,12 @@ public class ServerNode : IServerNode
   {
     _votesForMyself = 1;
     _votesRejected = 0;
+  }
+
+  void restartElectionTimerWithNewRandomInterval()
+  {
     _electionTimer = Utils.NewElectionTimer();
-    _electionTimer.Elapsed += async (sender, e) => await electionTimedOutProcedureAsync(sender, e);
+    addElectionTimeOutProcedureEventToElectionTimer();
   }
 
   async Task runElectionForYourselfAsync()
@@ -101,7 +117,6 @@ public class ServerNode : IServerNode
 
     await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(heartbeatArguments);
   }
-
 
   void stopAllHeartBeatThreads()
   {
@@ -189,13 +204,21 @@ public class ServerNode : IServerNode
 
   public async Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments)
   {
-    IServerNode leaderNode = _otherServerNodesInCluster.Single(server => server.Id == arguments.ServerNodeId);
+    IServerNode? leaderNode = _otherServerNodesInCluster.SingleOrDefault(server => server.Id == arguments.ServerNodeId);
     // Throw an error if leaderNode is null
 
-    if (arguments.ServerNodeId < _term)
+    if (leaderNode is null)
+    {
+      // Throw an error?
+      return;
+    }
+
+    if (arguments.Term < _term)
     {
       await leaderNode.LeaderToFollowerRemoteProcedureCallResponse(_id, false);
     }
+
+    // If the term is the same, we have some corner cases to solve
 
     _clusterLeaderId = arguments.ServerNodeId;
     _electionTimer.Stop();
@@ -213,8 +236,6 @@ public class ServerNode : IServerNode
 
     _term = arguments.ServerNodeId;
     restartElectionFields();
-
-    await Task.CompletedTask;
 
     await leaderNode.LeaderToFollowerRemoteProcedureCallResponse(_id, true);
   }
