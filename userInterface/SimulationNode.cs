@@ -25,9 +25,9 @@ public class SimulationNode : IServerNode
     _innerServerNode.AddServersToServersCluster(otherServers);
   }
 
-  public Task ReceiveHeartBeatAsync(HeartbeatArguments arguments)
+  public Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments)
   {
-    return _innerServerNode.ReceiveHeartBeatAsync(arguments);
+    return _innerServerNode.ReceiveLeaderToFollowerRemoteProcedureCallAsync(arguments);
   }
 
   public void KillServer()
@@ -45,13 +45,13 @@ public class SimulationNode : IServerNode
     return _innerServerNode.ThrowBalletForAsync(id, term);
   }
 
-  public Task ReceiveAppendEntriesAsync(int id, int term)
+  public Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(int id, int term)
   {
-    return _innerServerNode.ReceiveAppendEntriesAsync(id, term);
+    return _innerServerNode.ReceiveLeaderToFollowerRemoteProcedureCallAsync(id, term);
   }
 
-  public Task AppendEntryResponseAsync(int id, bool rejected)
+  public Task LeaderToFollowerRemoteProcedureCallResponse(int id, bool rejected)
   {
-    return _innerServerNode.AppendEntryResponseAsync(id, rejected);
+    return _innerServerNode.LeaderToFollowerRemoteProcedureCallResponse(id, rejected);
   }
 }

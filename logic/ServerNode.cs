@@ -90,43 +90,18 @@ public class ServerNode : IServerNode
   {
     while (_state == ServerNodeState.LEADER)
     {
-      await sendHeartbeatsToServerNodeAsync(server);
+      await sendHeartbeatToServerNodeAsync(server);
       Thread.Sleep(Constants.HEARTBEAT_PAUSE);
     }
   }
 
-  async Task sendHeartbeatsToServerNodeAsync(IServerNode server)
+  async Task sendHeartbeatToServerNodeAsync(IServerNode server)
   {
-    HeartbeatArguments heartbeatArguments = new(_term, _id);
+    LeaderToFollowerRemoteProcedureCallArguments heartbeatArguments = new(_term, _id);
 
-    await server.ReceiveHeartBeatAsync(heartbeatArguments);
+    await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(heartbeatArguments);
   }
 
-  public async Task ReceiveHeartBeatAsync(HeartbeatArguments arguments)
-  {
-    if (arguments.Term < _term)
-    {
-      return;
-    }
-
-    _electionTimer.Stop();
-    _electionTimer.Start();
-
-    ServerNodeState oldState = _state;
-    _state = ServerNodeState.FOLLOWER;
-    // Maybe I should validate that the serverNodeId is in my cluster
-    _clusterLeaderId = arguments.ServerNodeId;
-
-    if (oldState == ServerNodeState.LEADER)
-    {
-      stopAllHeartBeatThreads();
-    }
-
-    _term = arguments.Term;
-    restartElectionFields();
-
-    await Task.CompletedTask;
-  }
 
   void stopAllHeartBeatThreads()
   {
@@ -212,16 +187,17 @@ public class ServerNode : IServerNode
     stopAllHeartBeatThreads();
   }
 
-  public async Task ReceiveAppendEntriesAsync(int id, int term)
+  public async Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments)
   {
-    IServerNode leaderNode = _otherServerNodesInCluster.Single(server => server.Id == id);
+    IServerNode leaderNode = _otherServerNodesInCluster.Single(server => server.Id == arguments.ServerNodeId);
+    // Throw an error if leaderNode is null
 
-    if (term < _term && _state == ServerNodeState.CANDIDATE)
+    if (arguments.ServerNodeId < _term)
     {
-      await leaderNode.AppendEntryResponseAsync(_id, false);
+      await leaderNode.LeaderToFollowerRemoteProcedureCallResponse(_id, false);
     }
 
-    _clusterLeaderId = id;
+    _clusterLeaderId = arguments.ServerNodeId;
     _electionTimer.Stop();
     _electionTimer.Start();
 
@@ -231,18 +207,19 @@ public class ServerNode : IServerNode
 
     if (oldState == ServerNodeState.LEADER)
     {
+      // Handle if our terms match
       stopAllHeartBeatThreads();
     }
 
-    _term = term;
+    _term = arguments.ServerNodeId;
     restartElectionFields();
 
     await Task.CompletedTask;
 
-    await leaderNode.AppendEntryResponseAsync(_id, true);
+    await leaderNode.LeaderToFollowerRemoteProcedureCallResponse(_id, true);
   }
 
-  public async Task AppendEntryResponseAsync(int id, bool rejected)
+  public async Task LeaderToFollowerRemoteProcedureCallResponse(int id, bool rejected)
   {
     await Task.CompletedTask;
   }

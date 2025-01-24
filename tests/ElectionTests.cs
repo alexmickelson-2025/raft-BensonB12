@@ -1,10 +1,9 @@
 using Logic;
 using FluentAssertions;
 using NSubstitute;
-using System.Threading.Tasks;
 namespace Tests;
 
-public class ServerNodeTest
+public class ElectionTests
 {
     const int _generalBufferTime = 15;
 
@@ -51,7 +50,7 @@ public class ServerNodeTest
         int leaderId = 1;
 
         // When
-        await followerServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, leaderId));
+        await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, leaderId));
 
         // Then
         followerServer.ClusterLeaderId.Should().Be(leaderId);
@@ -167,7 +166,7 @@ public class ServerNodeTest
         for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME / waitTime) + 1; i++)
         {
             Thread.Sleep(waitTime);
-            await followerServer.ReceiveHeartBeatAsync(new HeartbeatArguments(followerServer.Term + 1, 1));
+            await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(followerServer.Term + 1, 1));
         }
 
         // Then
@@ -273,7 +272,7 @@ public class ServerNodeTest
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, candidateServer.Term + 1));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, candidateServer.Term + 1));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -294,7 +293,7 @@ public class ServerNodeTest
             // Do I do something here?
         }
 
-        await candidateServer.ReceiveHeartBeatAsync(new HeartbeatArguments(1, candidateServer.Term));
+        await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(1, candidateServer.Term));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -385,10 +384,10 @@ public class ServerNodeTest
         server.AddServersToServersCluster([leaderNode]);
 
         // When
-        await server.ReceiveAppendEntriesAsync(leaderId, 1);
+        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
 
         // Then
-        await leaderNode.Received().AppendEntryResponseAsync(server.Id, true);
+        await leaderNode.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, true);
     }
 
     /// <summary>
@@ -406,10 +405,10 @@ public class ServerNodeTest
 
         // When
         Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
-        await server.ReceiveAppendEntriesAsync(leaderId, 0);
+        await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 0));
 
         // Then
-        await leaderNode.Received().AppendEntryResponseAsync(server.Id, false);
+        await leaderNode.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, false);
     }
 
     /// <summary>
@@ -435,28 +434,6 @@ public class ServerNodeTest
         Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + _generalBufferTime);
 
         // Then
-        followerServer.Received().ReceiveHeartBeatAsync(Arg.Any<HeartbeatArguments>());
+        followerServer.Received().ReceiveLeaderToFollowerRemoteProcedureCallAsync(Arg.Any<LeaderToFollowerRemoteProcedureCallArguments>());
     }
-
-    /// <summary>
-    /// Test for 5.3 log replication assignment
-    /// </summary>
-    // [Fact]
-    // public void AfterALeaderHasGottenALogCommandAllServersAreUpAfterEnoughTimeForTheServersToReceiveItTheyAllHaveTheSameLog()
-    // {
-    //     // Given
-    //     IServerNode mockServerOne = Substitute.For<IServerNode>();
-    //     IServerNode mockServerTwo = Substitute.For<IServerNode>();
-    //     ServerNode leaderNode = new();
-    //     leaderNode.AddServersToServersCluster([mockServerOne, mockServerTwo]);
-
-    //     // When
-    //     leaderNode.AcceptLogAsync("one");
-    //     Thread.Sleep(300);
-
-    //     // Then
-    //     leaderNode.Logs.Should().Be(["one"]);
-    //     mockServerOne.Received().AppendEtries("one");
-    //     mockServerTwo.Received().AppendEtries("one");
-    // }
 }

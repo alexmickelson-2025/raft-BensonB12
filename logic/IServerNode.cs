@@ -8,10 +8,9 @@ public interface IServerNode
   System.Timers.Timer ElectionTimer { get; }
   int? ClusterLeaderId { get; }
   void AddServersToServersCluster(IEnumerable<IServerNode> otherServers);
-  Task ReceiveHeartBeatAsync(HeartbeatArguments arguments);
+  Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments);
   void KillServer();
   Task AcceptVoteAsync(bool inSupport);
   Task ThrowBalletForAsync(int id, int term);
-  Task ReceiveAppendEntriesAsync(int id, int term);
-  Task AppendEntryResponseAsync(int id, bool applied);
+  Task LeaderToFollowerRemoteProcedureCallResponse(int id, bool applied);
 }
