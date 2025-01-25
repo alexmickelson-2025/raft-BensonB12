@@ -5,8 +5,6 @@ namespace Tests;
 
 public class ElectionTests
 {
-    private const int GENERAL_BUFFER_TIME = 15;
-
     /// <summary>
     /// Testing #1
     /// </summary>
@@ -17,7 +15,7 @@ public class ElectionTests
         int minimumNumberOfHeartbeats = 3;
 
         ServerNode leaderServer = new();
-        IServerNode followerServer = createIServerNodeSubstituteWithId(1);
+        IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
 
         followerServer
             .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
@@ -29,7 +27,7 @@ public class ElectionTests
         leaderServer.AddServersToServersCluster([followerServer]);
 
         // When
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
 
         for (int i = 0; i < minimumNumberOfHeartbeats; i++)
         {
@@ -49,7 +47,7 @@ public class ElectionTests
         // Given
         int leaderId = 1;
 
-        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
         ServerNode followerServer = new([leaderServer]);
 
         // When
@@ -158,10 +156,10 @@ public class ElectionTests
     public async Task WhenAFollowerReceivesAnAppendEntriesMessageOrHeartbeatItResetsTheElectionTimer()
     {
         // Given
-        int waitTime = Constants.INCLUSIVE_MINIMUM_ELECTION_TIME - GENERAL_BUFFER_TIME;
+        int waitTime = Constants.INCLUSIVE_MINIMUM_ELECTION_TIME - Utils.GENERAL_BUFFER_TIME;
         int leaderId = 1;
 
-        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
         ServerNode followerServer = new([leaderServer]);
 
         if (waitTime < 1)
@@ -190,7 +188,7 @@ public class ElectionTests
         ServerNode server = new();
 
         // When
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
 
         // Then
         server.State.Should().Be(ServerNodeState.LEADER);
@@ -204,8 +202,8 @@ public class ElectionTests
     {
         // Given
         ServerNode leaderServer = new();
-        IServerNode followerOne = createIServerNodeSubstituteWithId(1);
-        IServerNode followerTwo = createIServerNodeSubstituteWithId(2);
+        IServerNode followerOne = Utils.CreateIServerNodeSubstituteWithId(1);
+        IServerNode followerTwo = Utils.CreateIServerNodeSubstituteWithId(2);
 
         followerOne
             .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
@@ -218,7 +216,7 @@ public class ElectionTests
 
 
         // When
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
 
         // Then
         leaderServer.State.Should().Be(ServerNodeState.LEADER);
@@ -233,7 +231,7 @@ public class ElectionTests
         // Given
         int leaderId = 1;
 
-        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
 
         ServerNode server = new([leaderServer]);
 
@@ -254,7 +252,7 @@ public class ElectionTests
         ServerNode candidate = new();
 
         // When
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
 
         // Then
         // If it is the only server, then majority must be one, therefore it must have received at least one vote, from itself
@@ -270,7 +268,7 @@ public class ElectionTests
         // Given
         int leaderId = 1;
 
-        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
         ServerNode candidateServer = new([leaderServer]);
 
         // When
@@ -294,7 +292,7 @@ public class ElectionTests
         // Given
         int leaderId = 1;
 
-        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
         ServerNode candidateServer = new([leaderServer]);
 
         // When
@@ -320,8 +318,8 @@ public class ElectionTests
         int candidateOneId = 1;
         int candidateTwoId = 2;
 
-        IServerNode candidateServerOne = createIServerNodeSubstituteWithId(candidateOneId);
-        IServerNode candidateServerTwo = createIServerNodeSubstituteWithId(candidateTwoId);
+        IServerNode candidateServerOne = Utils.CreateIServerNodeSubstituteWithId(candidateOneId);
+        IServerNode candidateServerTwo = Utils.CreateIServerNodeSubstituteWithId(candidateTwoId);
         ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
         // When
@@ -343,8 +341,8 @@ public class ElectionTests
         int candidateOneId = 1;
         int candidateTwoId = 2;
 
-        IServerNode candidateServerOne = createIServerNodeSubstituteWithId(candidateOneId);
-        IServerNode candidateServerTwo = createIServerNodeSubstituteWithId(candidateTwoId);
+        IServerNode candidateServerOne = Utils.CreateIServerNodeSubstituteWithId(candidateOneId);
+        IServerNode candidateServerTwo = Utils.CreateIServerNodeSubstituteWithId(candidateTwoId);
         ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
         // When
@@ -366,11 +364,11 @@ public class ElectionTests
         ServerNode server = new([otherServer]);
 
         // When
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
 
         uint firstCandidateTerm = server.Term;
 
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
 
         // Then
         server.State.Should().Be(ServerNodeState.CANDIDATE);
@@ -386,7 +384,7 @@ public class ElectionTests
         // Given
         int leaderId = 1;
 
-        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
         ServerNode server = new([leaderServer]);
 
         // When
@@ -405,11 +403,11 @@ public class ElectionTests
         // Given
         int leaderId = 1;
 
-        IServerNode leaderServer = createIServerNodeSubstituteWithId(leaderId);
+        IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
         ServerNode server = new([leaderServer]);
 
         // When
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
         await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 0));
 
         // Then
@@ -425,7 +423,7 @@ public class ElectionTests
         // Given
         ServerNode leaderServer = new();
 
-        IServerNode followerServer = createIServerNodeSubstituteWithId(1);
+        IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
         followerServer
             .When(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
             .Do(async _ =>
@@ -436,21 +434,9 @@ public class ElectionTests
         leaderServer.AddServersToServersCluster([followerServer]);
 
         // When
-        waitForElectionTimerToRunOut();
+        Utils.WaitForElectionTimerToRunOut();
 
         // Then
         followerServer.Received().ReceiveLeaderToFollowerRemoteProcedureCallAsync(Arg.Any<LeaderToFollowerRemoteProcedureCallArguments>());
-    }
-
-    static void waitForElectionTimerToRunOut()
-    {
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + GENERAL_BUFFER_TIME);
-    }
-
-    static IServerNode createIServerNodeSubstituteWithId(int id)
-    {
-        IServerNode server = Substitute.For<IServerNode>();
-        server.Id.Returns(id);
-        return server;
     }
 }
