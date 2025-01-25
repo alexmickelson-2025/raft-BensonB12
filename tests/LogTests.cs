@@ -17,6 +17,29 @@ public class LogTests
 
     // Then
   }
+
+  /// <summary>
+  /// Testing #2
+  /// </summary>
+  [Fact]
+  public void WhenALeaderReceivesACommandFromTheClientItIsAppendedToItsLog()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  [Fact]
+  public void WhenAServerIsNewItsLogIsEmpty()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
 }
 
 // A follower rejects a candidate vote if it has larger committed logs
