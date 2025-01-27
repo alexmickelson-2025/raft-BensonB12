@@ -6,15 +6,18 @@ namespace Tests;
 
 public class PausingTests
 {
+  /// <summary>
+  /// Testing Pausing #1
+  /// </summary>
   [Fact]
-  public void WhenNodeIsLeaderAndPausedOtherNodesDoNotGetHeartbeats()
+  public void WhenServerIsLeaderAndPausedOtherNodesDoNotGetHeartbeats()
   {
     // Given
-    IServerNode followerOne = Utils.CreateIServerNodeSubstituteWithId(1);
+    IServerNode follower = Utils.CreateIServerNodeSubstituteWithId(1);
     ServerNode leaderServer = new();
 
-    Utils.ServersVoteForLeaderWhenAsked([followerOne], leaderServer);
-    leaderServer.AddServersToServersCluster([followerOne]);
+    Utils.ServersVoteForLeaderWhenAsked([follower], leaderServer);
+    leaderServer.AddServersToServersCluster([follower]);
 
     // When
     while (leaderServer.State != ServerNodeState.LEADER)
@@ -23,10 +26,38 @@ public class PausingTests
     }
 
     leaderServer.PauseServer();
-    int callsSoFar = followerOne.ReceivedCalls().Count();
+    int callsSoFar = follower.ReceivedCalls().Count();
     Utils.WaitForHeartbeatTimerToRunOut();
 
     // Then
-    followerOne.ReceivedCalls().Should().HaveCount(callsSoFar);
+    follower.ReceivedCalls().Should().HaveCount(callsSoFar);
+  }
+
+  /// <summary>
+  /// Testing Pausing #2
+  /// </summary>
+  [Fact]
+  public void WhenServerIsLeaderPausedThenUnpausedItStartsSendingHeartbeatsAgain()
+  {
+    // Given
+    IServerNode follower = Utils.CreateIServerNodeSubstituteWithId(1);
+    ServerNode leaderServer = new();
+
+    Utils.ServersVoteForLeaderWhenAsked([follower], leaderServer);
+    leaderServer.AddServersToServersCluster([follower]);
+
+    // When
+    while (leaderServer.State != ServerNodeState.LEADER)
+    {
+      // Wait
+    }
+
+    leaderServer.PauseServer();
+    int callsSoFar = follower.ReceivedCalls().Count();
+    leaderServer.UnpauseServer();
+    Utils.WaitForHeartbeatTimerToRunOut();
+
+    // Then
+    follower.ReceivedCalls().Should().HaveCountGreaterThan(callsSoFar);
   }
 }

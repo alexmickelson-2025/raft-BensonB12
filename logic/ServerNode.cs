@@ -9,6 +9,7 @@ public class ServerNode : IServerNode
   readonly int _id = Utils.GenerateUniqueServerNodeId();
   public int Id => _id;
   ServerNodeState _state = ServerNodeState.FOLLOWER;
+  ServerNodeState? _stateBeforePause;
   public ServerNodeState State => _state;
   uint _term = 0;
   public uint Term => _term;
@@ -198,8 +199,24 @@ public class ServerNode : IServerNode
 
   public void PauseServer()
   {
+    _stateBeforePause = _state;
     _state = ServerNodeState.DOWN;
     stopAllHeartBeatThreads();
+  }
+
+  public void UnpauseServer()
+  {
+    if (_stateBeforePause is null)
+    {
+      return;
+    }
+    _state = (ServerNodeState)_stateBeforePause;
+    _stateBeforePause = null;
+
+    if (_state == ServerNodeState.LEADER)
+    {
+      becomeLeader();
+    }
   }
 
   public async Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments)
