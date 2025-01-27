@@ -16,6 +16,10 @@ Welcome to your new app.
   {
     <div class="col m-2 rounded border border-2 p-2">
       <div>
+        <button class="btn btn-warning" @onclick=simulationNode.PauseServer>@(simulationNode.State == ServerNodeState.DOWN
+        ? "unpause" : "pause")</button>
+      </div>
+      <div>
         My Id is @simulationNode.Id
       </div>
       <div>

@@ -11,11 +11,10 @@ public class PausingTests
   {
     // Given
     IServerNode followerOne = Utils.CreateIServerNodeSubstituteWithId(1);
-    IServerNode followerTwo = Utils.CreateIServerNodeSubstituteWithId(2);
     ServerNode leaderServer = new();
 
-    Utils.ServersVoteForLeaderWhenAsked([followerOne, followerTwo], leaderServer);
-    leaderServer.AddServersToServersCluster([followerOne, followerTwo]);
+    Utils.ServersVoteForLeaderWhenAsked([followerOne], leaderServer);
+    leaderServer.AddServersToServersCluster([followerOne]);
 
     // When
     while (leaderServer.State != ServerNodeState.LEADER)

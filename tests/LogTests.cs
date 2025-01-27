@@ -6,6 +6,25 @@ namespace Tests;
 public class LogTests
 {
   /// <summary>
+  /// Testing #17
+  /// </summary>
+  [Fact]
+  public async Task WhenAFollowerReceivesLogItSendsAResponse()
+  {
+    // Given
+    int leaderId = 1;
+
+    IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
+    ServerNode server = new([leaderServer]);
+
+    // When
+    await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
+
+    // Then
+    await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, true);
+  }
+
+  /// <summary>
   /// Testing Logs #1
   /// </summary>
   [Fact]
