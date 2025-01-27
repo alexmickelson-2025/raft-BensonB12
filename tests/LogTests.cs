@@ -6,7 +6,7 @@ namespace Tests;
 public class LogTests
 {
   /// <summary>
-  /// Testing #1
+  /// Testing Logs #1
   /// </summary>
   [Fact]
   public void WhenALeaderReceivesAClientCommandTheLeaderSendsTheLogEntryInTheNextAppendEntryToAllNodes()
@@ -19,7 +19,7 @@ public class LogTests
   }
 
   /// <summary>
-  /// Testing #2
+  /// TestingLogs #2
   /// </summary>
   [Fact]
   public void WhenALeaderReceivesACommandFromTheClientItIsAppendedToItsLog()
@@ -31,6 +31,9 @@ public class LogTests
     // Then
   }
 
+  /// <summary>
+  /// Testing Logs #3
+  /// </summary>
   [Fact]
   public void WhenAServerIsNewItsLogIsEmpty()
   {
