@@ -92,6 +92,7 @@ public class ServerNode : IServerNode
   {
     _state = ServerNodeState.LEADER;
     _clusterLeaderId = _id;
+    _electionTimer.Stop();
 
     // Watchout for updates to _otherServerNodesInCluster or the servers in them, it will throw an exception
     // Should probably test and then catch and handle cases for that
@@ -201,6 +202,7 @@ public class ServerNode : IServerNode
   {
     _stateBeforePause = _state;
     _state = ServerNodeState.DOWN;
+    _electionTimer.Stop();
     stopAllHeartBeatThreads();
   }
 
@@ -213,10 +215,13 @@ public class ServerNode : IServerNode
     _state = (ServerNodeState)_stateBeforePause;
     _stateBeforePause = null;
 
-    if (_state == ServerNodeState.LEADER)
+    if (_state != ServerNodeState.LEADER)
     {
       becomeLeader();
+      return;
     }
+
+    ElectionTimer.Start();
   }
 
   public async Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments)
@@ -249,6 +254,7 @@ public class ServerNode : IServerNode
     {
       // Handle if our terms match
       stopAllHeartBeatThreads();
+      restartElectionTimerWithNewRandomInterval();
     }
 
     _term = arguments.Term;

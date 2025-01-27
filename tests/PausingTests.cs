@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using FluentAssertions;
 using Logic;
 using NSubstitute;
@@ -59,5 +60,40 @@ public class PausingTests
 
     // Then
     follower.ReceivedCalls().Should().HaveCountGreaterThan(callsSoFar);
+  }
+
+  /// <summary>
+  /// Testing Pausing #3
+  /// </summary>
+  [Fact]
+  public void WhenServerGetsPausedTheyDoNotBecomeACandidate()
+  {
+    // Given
+    ServerNode server = new();
+
+    // When
+    server.PauseServer();
+    Utils.WaitForElectionTimerToRunOut();
+
+    // Then
+    server.State.Should().NotBe(ServerNodeState.CANDIDATE);
+  }
+
+  /// <summary>
+  /// Testing Pausing #3
+  /// </summary>
+  [Fact]
+  public async Task WhenServerGetsPausedTheyDoNotSendOutVoteRequests()
+  {
+    // Given
+    IServerNode otherServer = Utils.CreateIServerNodeSubstituteWithId(1);
+    ServerNode server = new([otherServer]);
+
+    // When
+    server.PauseServer();
+    Utils.WaitForElectionTimerToRunOut();
+
+    // Then
+    await otherServer.DidNotReceive().ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>());
   }
 }
