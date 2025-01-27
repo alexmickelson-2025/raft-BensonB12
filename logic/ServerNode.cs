@@ -196,7 +196,7 @@ public class ServerNode : IServerNode
     }
   }
 
-  public void KillServer()
+  public void PauseServer()
   {
     _state = ServerNodeState.DOWN;
     stopAllHeartBeatThreads();

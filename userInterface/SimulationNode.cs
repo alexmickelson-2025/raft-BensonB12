@@ -30,9 +30,9 @@ public class SimulationNode : IServerNode
     return _innerServerNode.ReceiveLeaderToFollowerRemoteProcedureCallAsync(arguments);
   }
 
-  public void KillServer()
+  public void PauseServer()
   {
-    _innerServerNode.KillServer();
+    _innerServerNode.PauseServer();
   }
 
   public Task AcceptVoteAsync(bool inSupport)

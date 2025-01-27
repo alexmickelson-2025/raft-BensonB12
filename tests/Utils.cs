@@ -12,6 +12,11 @@ public static class Utils
     Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + GENERAL_BUFFER_TIME);
   }
 
+  public static void WaitForHeartbeatTimerToRunOut()
+  {
+    Thread.Sleep(Constants.HEARTBEAT_PAUSE + GENERAL_BUFFER_TIME);
+  }
+
   public static IServerNode CreateIServerNodeSubstituteWithId(int id)
   {
     IServerNode server = Substitute.For<IServerNode>();
@@ -19,4 +24,16 @@ public static class Utils
     return server;
   }
 
+  public static void ServersVoteForLeaderWhenAsked(IEnumerable<IServerNode> followerServers, IServerNode leaderServer)
+  {
+    foreach (IServerNode followerServer in followerServers)
+    {
+      followerServer
+        .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
+              .Do(async _ =>
+              {
+                await leaderServer.AcceptVoteAsync(true);
+              });
+    }
+  }
 }

@@ -205,15 +205,8 @@ public class ElectionTests
         IServerNode followerOne = Utils.CreateIServerNodeSubstituteWithId(1);
         IServerNode followerTwo = Utils.CreateIServerNodeSubstituteWithId(2);
 
-        followerOne
-            .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
-            .Do(async _ =>
-            {
-                await leaderServer.AcceptVoteAsync(true);
-            });
-
+        Utils.ServersVoteForLeaderWhenAsked([followerOne], leaderServer);
         leaderServer.AddServersToServersCluster([followerOne, followerTwo]);
-
 
         // When
         Utils.WaitForElectionTimerToRunOut();
