@@ -45,9 +45,9 @@ public class SimulationNode : IServerNode
     return _innerServerNode.RegisterVoteForAsync(id, term);
   }
 
-  public Task RPCResponseAsyncFromFollowerAsync(int id, bool rejected)
+  public Task RPCFromFollowerAsync(int id, bool rejected)
   {
-    return _innerServerNode.RPCResponseAsyncFromFollowerAsync(id, rejected);
+    return _innerServerNode.RPCFromFollowerAsync(id, rejected);
   }
 
   public void Unpause()

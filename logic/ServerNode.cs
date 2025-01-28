@@ -25,6 +25,8 @@ public class ServerNode : IServerNode
   bool _electionCancellationFlag = false;
   Logs _logs = [];
   public Logs Logs => _logs;
+  Dictionary<int, int> _followerToNextIndex = [];
+  public Dictionary<int, int> FollowerToNextIndex => _followerToNextIndex; // Throw an error if I am not the leader
 
   public ServerNode()
   {
@@ -50,6 +52,11 @@ public class ServerNode : IServerNode
 
   public void AddServersToCluster(IEnumerable<IServerNode> otherServers)
   {
+    foreach (IServerNode server in otherServers)
+    {
+      _followerToNextIndex[server.Id] = 0;
+    }
+
     _otherServersInCluster.AddRange(otherServers);
   }
 
@@ -227,7 +234,7 @@ public class ServerNode : IServerNode
 
     if (args.Term < _term)
     {
-      await leaderNode.RPCResponseAsyncFromFollowerAsync(_id, false);
+      await leaderNode.RPCFromFollowerAsync(_id, false);
       return;
     }
 
@@ -250,10 +257,10 @@ public class ServerNode : IServerNode
 
     _term = args.Term;
 
-    await leaderNode.RPCResponseAsyncFromFollowerAsync(_id, true);
+    await leaderNode.RPCFromFollowerAsync(_id, true);
   }
 
-  public async Task RPCResponseAsyncFromFollowerAsync(int id, bool rejected)
+  public async Task RPCFromFollowerAsync(int id, bool rejected)
   {
     await Task.CompletedTask;
   }
@@ -297,8 +304,8 @@ public class ServerNode : IServerNode
   public async Task AppendLogRPCAsync(string log)
   {
     // TODO: Make sure I am the leader
-    RPCFromLeaderArgs appendLogArgs = new(_id, _term, log);
     appendLog(_term, log);
+    RPCFromLeaderArgs appendLogArgs = new(_id, _term, log, _logs.NextIndex);
 
     foreach (IServerNode server in _otherServersInCluster)
     {

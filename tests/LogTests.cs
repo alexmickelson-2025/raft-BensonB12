@@ -22,7 +22,7 @@ public class LogTests
     await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1));
 
     // Then
-    await leaderServer.Received().RPCResponseAsyncFromFollowerAsync(server.Id, true);
+    await leaderServer.Received().RPCFromFollowerAsync(server.Id, true);
   }
 
   /// <summary>
@@ -35,7 +35,10 @@ public class LogTests
     string log = "log";
 
     IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
-    ServerNode leaderServer = new([followerServer]);
+    ServerNode leaderServer = new();
+
+    Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
+    leaderServer.AddServersToCluster([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
@@ -85,13 +88,13 @@ public class LogTests
   public void WhenALeaderWinsAnElectionItInitializesTheNextIndexCorrectly()
   {
     // Given
-    ServerNode leaderNode = new();
+    ServerNode leaderServer = new();
 
     // When
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    leaderNode.Logs.NextIndex.Should().Be(0);
+    leaderServer.Logs.NextIndex.Should().Be(0);
   }
 
   /// <summary>
@@ -101,17 +104,60 @@ public class LogTests
   public async Task WhenALeaderWinsAnElectionItInitializesTheNextIndexForEachFollowerToIndexJustAfterTheLastLog()
   {
     // Given
-    IServerNode followerNode = Utils.CreateIServerNodeSubstituteWithId(1);
+    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
     ServerNode leaderServer = new();
 
-    Utils.ServersVoteForLeaderWhenAsked([followerNode], leaderServer);
-    leaderServer.AddServersToCluster([followerNode]);
+    Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
+    leaderServer.AddServersToCluster([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    await followerNode.Received().SetNextIndexToAsync(Arg.Is<SetNextIndexToArgs>(args => args.NextIndex == 0));
+    await followerServer.Received().SetNextIndexToAsync(Arg.Is<SetNextIndexToArgs>(args => args.NextIndex == 0));
+  }
+
+  /// <summary>
+  /// Testing Logs #5
+  /// </summary>
+  [Fact]
+  public void LeaderMaintainsNextIndexForEachFollower()
+  {
+    // Given
+    int followerId = 1;
+
+    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(followerId);
+    ServerNode leaderServer = new();
+
+    Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
+    leaderServer.AddServersToCluster([followerServer]);
+
+    // When
+    Utils.WaitForElectionTimerToRunOut();
+
+    // Then
+    leaderServer.FollowerToNextIndex[followerId].Should().Be(0);
+  }
+
+  /// <summary>
+  /// Testing Logs #6
+  /// </summary>
+  [Fact]
+  public async Task HighestCommittedIndexFromTheLeaderIsIncludedInRPCFromLeader()
+  {
+    // Given
+    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
+    ServerNode leaderServer = new();
+
+    Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
+    leaderServer.AddServersToCluster([followerServer]);
+
+    // When
+    Utils.WaitForElectionTimerToRunOut();
+    await leaderServer.AppendLogRPCAsync("log");
+
+    // Then
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.LogIndex == 1)); // It will be a list of logs eventually
   }
 }
 

@@ -162,7 +162,7 @@ public class PausingTests
     await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1));
 
     // Then
-    await leaderServer.DidNotReceiveWithAnyArgs().RPCResponseAsyncFromFollowerAsync(Arg.Any<int>(), Arg.Any<bool>());
+    await leaderServer.DidNotReceiveWithAnyArgs().RPCFromFollowerAsync(Arg.Any<int>(), Arg.Any<bool>());
   }
 
   /// <summary>

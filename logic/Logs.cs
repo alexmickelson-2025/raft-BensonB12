@@ -8,7 +8,7 @@ public class Logs : IEnumerable<LogData>
   public int NextIndex => _logs.Count;
   public void Add(uint term, string log)
   {
-    _logs.Add(new(term, log));
+    _logs.Add(new LogData(term, log));
   }
 
   public LogData this[int index]

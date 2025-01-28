@@ -99,6 +99,6 @@ public class ElectionTests
         await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 0));
 
         // Then
-        await leaderServer.Received().RPCResponseAsyncFromFollowerAsync(server.Id, false);
+        await leaderServer.Received().RPCFromFollowerAsync(server.Id, false);
     }
 }
