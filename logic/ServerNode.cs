@@ -3,6 +3,7 @@ using Logic.Exceptions;
 
 namespace Logic;
 
+// TODO: Refactor this class down
 public class ServerNode : IServerNode
 {
   int _votesForMyself = 1;
@@ -154,6 +155,7 @@ public class ServerNode : IServerNode
     int numberOfNodes = _otherServerNodesInCluster.Count + 1;
     int majority = (numberOfNodes / 2) + 1;
 
+    // TODO: re-write the wile loops that are sucking up CPU. I want to do an event listener ...
     while (_votesForMyself < majority && _votesRejected < majority && !_electionCancellationFlag)
     {
       // Wait for calls
@@ -203,6 +205,7 @@ public class ServerNode : IServerNode
     await server.RPCFromLeaderAsync(heartbeatArgs);
   }
 
+  // TODO: Refactor this method down
   public async Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
   {
     if (_state == ServerNodeState.DOWN)
