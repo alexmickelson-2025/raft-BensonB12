@@ -1,4 +1,5 @@
 ﻿using System.Timers;
+using Logic.Exceptions;
 
 namespace Logic;
 
@@ -61,7 +62,7 @@ public class ServerNode : IServerNode
     }
 
     _term++;
-    _hasVotedInTerm[_term] = false;
+    _hasVotedInTerm[_term] = true; // TODO: add to to make sure it does not vote for others
     discardOldVotes();
     restartElectionTimerWithNewInterval();
 
@@ -96,19 +97,10 @@ public class ServerNode : IServerNode
   async Task petitionOtherServersForVote()
   {
     // Cannot do foreach because of they will update (Threading)
+    // TODO: Fix using a lock
     for (int i = 0; i < _otherServerNodesInCluster.Count; i++)
     {
-      await petitionServerForVote(_otherServerNodesInCluster[i].Id);
-    }
-  }
-
-  async Task petitionServerForVote(int id)
-  {
-    IServerNode? votingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
-
-    if (votingNode is not null)
-    {
-      await votingNode.TryToVoteForAsync(_id, _term); // Can only ask for a vote once per term
+      await _otherServerNodesInCluster[i].TryToVoteForAsync(_id, _term);
     }
   }
 
@@ -133,14 +125,16 @@ public class ServerNode : IServerNode
   {
     IServerNode? candidate = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
 
-    if (candidate is not null)
+    if (candidate is null) // TODO: Test this
     {
-      await candidate.CountVoteAsync(inFavor); // Can only send the vote once per term
-      _hasVotedInTerm[newTerm] = true;
+      throw new ClusterDidNotContainServerException(id);
     }
+
+    await candidate.CountVoteAsync(inFavor);
+    _hasVotedInTerm[newTerm] = true;
   }
 
-  public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote 
+  public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote, the servers are restricted to only vote once per term. Maybe I should take the term then?
   {
     await Task.CompletedTask;
 
@@ -211,13 +205,17 @@ public class ServerNode : IServerNode
 
   public async Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
   {
+    if (_state == ServerNodeState.DOWN)
+    {
+      return;
+    }
+
     IServerNode? leaderNode = _otherServerNodesInCluster.SingleOrDefault(server => server.Id == args.ServerId);
     // Throw an error if leaderNode is null
 
     if (leaderNode is null)
     {
-      // Throw an error?
-      return;
+      throw new ClusterDidNotContainServerException(args.ServerId);
     }
 
     if (args.Term < _term)
@@ -264,8 +262,9 @@ public class ServerNode : IServerNode
   {
     if (_stateBeforePause is null)
     {
-      return;
+      throw new UnpausedARunningServerException();
     }
+
     _state = (ServerNodeState)_stateBeforePause;
     _stateBeforePause = null;
 

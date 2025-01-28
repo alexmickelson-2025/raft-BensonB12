@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using Logic;
+using Logic.Exceptions;
 using NSubstitute;
 
 namespace Tests;
@@ -120,8 +121,8 @@ public class PausingTests
     // Given
     int otherServerId = 1;
 
-    ServerNode server = new();
     IServerNode otherServer = Utils.CreateIServerNodeSubstituteWithId(otherServerId);
+    ServerNode server = new([otherServer]);
 
     // When
     server.Pause();
@@ -152,8 +153,9 @@ public class PausingTests
   {
     // Given
     int leaderId = 1;
-    ServerNode server = new();
+
     IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
+    ServerNode server = new([leaderServer]);
 
     // When
     server.Pause();
@@ -167,13 +169,20 @@ public class PausingTests
   /// Testing Pausing #5
   /// </summary>
   [Fact]
-  public void WhenServerIsPausedItDoesNotAcceptVote()
+  public async Task WhenServerIsPausedItDoesNotAcceptVote()
   {
     // Given
+    int candidateId = 1;
+    IServerNode candidateServer = Utils.CreateIServerNodeSubstituteWithId(candidateId);
+    ServerNode server = new([candidateServer]);
 
     // When
+    server.Pause();
+    await server.TryToVoteForAsync(candidateId, server.Term + 1);
+    Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
 
     // Then
+    await candidateServer.DidNotReceiveWithAnyArgs().CountVoteAsync(Arg.Any<bool>());
   }
 
   /// <summary>
@@ -183,9 +192,11 @@ public class PausingTests
   public void WhenServerIsUnpausedWithoutBeingPausedItThrowsError()
   {
     // Given
+    ServerNode server = new();
 
-    // When
-
-    // Then
+    // When & Then
+    FluentActions.Invoking(() => server.Unpause())
+        .Should()
+        .Throw<UnpausedARunningServerException>();
   }
 }
