@@ -29,7 +29,7 @@ public static class Utils
     foreach (IServerNode followerServer in followerServers)
     {
       followerServer
-        .WhenForAnyArgs(server => server.TryToVoteForAsync(Arg.Any<int>(), Arg.Any<uint>()))
+        .WhenForAnyArgs(server => server.RegisterVoteForAsync(Arg.Any<int>(), Arg.Any<uint>()))
               .Do(async _ =>
               {
                 await leaderServer.CountVoteAsync(true);

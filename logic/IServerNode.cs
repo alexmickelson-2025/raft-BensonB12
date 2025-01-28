@@ -12,6 +12,8 @@ public interface IServerNode
   void Pause();
   void Unpause();
   Task CountVoteAsync(bool inSupport);
-  Task TryToVoteForAsync(int id, uint term);
+  Task RegisterVoteForAsync(int id, uint term);
   Task RPCResponseAsyncFromFollowerAsync(int id, bool applied);
+  Task SetNextIndexToAsync(SetNextIndexToArgs setNextIndexToArgs);
+  Task AppendLogRPCAsync(string log);
 }

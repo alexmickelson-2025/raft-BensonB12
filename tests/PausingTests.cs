@@ -91,7 +91,7 @@ public class PausingTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    await otherServer.DidNotReceive().TryToVoteForAsync(Arg.Any<int>(), Arg.Any<uint>());
+    await otherServer.DidNotReceive().RegisterVoteForAsync(Arg.Any<int>(), Arg.Any<uint>());
   }
 
   /// <summary>
@@ -126,7 +126,7 @@ public class PausingTests
 
     // When
     server.Pause();
-    await server.TryToVoteForAsync(otherServerId, server.Term + 1);
+    await server.RegisterVoteForAsync(otherServerId, server.Term + 1);
 
     // Then
     await otherServer.DidNotReceiveWithAnyArgs().CountVoteAsync(Arg.Any<bool>());
@@ -178,7 +178,7 @@ public class PausingTests
 
     // When
     server.Pause();
-    await server.TryToVoteForAsync(candidateId, server.Term + 1);
+    await server.RegisterVoteForAsync(candidateId, server.Term + 1);
     Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
 
     // Then

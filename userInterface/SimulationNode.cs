@@ -40,9 +40,9 @@ public class SimulationNode : IServerNode
     return _innerServerNode.CountVoteAsync(inSupport);
   }
 
-  public Task TryToVoteForAsync(int id, uint term)
+  public Task RegisterVoteForAsync(int id, uint term)
   {
-    return _innerServerNode.TryToVoteForAsync(id, term);
+    return _innerServerNode.RegisterVoteForAsync(id, term);
   }
 
   public Task RPCResponseAsyncFromFollowerAsync(int id, bool rejected)
@@ -53,5 +53,15 @@ public class SimulationNode : IServerNode
   public void Unpause()
   {
     _innerServerNode.Unpause();
+  }
+
+  public Task SetNextIndexToAsync(SetNextIndexToArgs args)
+  {
+    return _innerServerNode.SetNextIndexToAsync(args);
+  }
+
+  public Task AppendLogRPCAsync(string log)
+  {
+    return _innerServerNode.AppendLogRPCAsync(log);
   }
 }

@@ -23,8 +23,8 @@ public class ServerNode : IServerNode
   int? _clusterLeaderId;
   public int? ClusterLeaderId => _clusterLeaderId;
   bool _electionCancellationFlag = false;
-  List<string> _logs = [];
-  public List<string> Logs => _logs;
+  Logs _logs = [];
+  public Logs Logs => _logs;
 
   public ServerNode()
   {
@@ -53,7 +53,7 @@ public class ServerNode : IServerNode
     _otherServersInCluster.AddRange(otherServers);
   }
 
-  async Task initiateElection(object? sender, ElapsedEventArgs e)
+  async Task initiateElection(object? _, ElapsedEventArgs __)
   {
     if (_state == ServerNodeState.CANDIDATE)
     {
@@ -103,11 +103,11 @@ public class ServerNode : IServerNode
     // TODO: Fix using a lock
     for (int i = 0; i < _otherServersInCluster.Count; i++)
     {
-      await _otherServersInCluster[i].TryToVoteForAsync(_id, _term);
+      await _otherServersInCluster[i].RegisterVoteForAsync(_id, _term);
     }
   }
 
-  public async Task TryToVoteForAsync(int id, uint term)
+  public async Task RegisterVoteForAsync(int id, uint term)
   {
     if (_state == ServerNodeState.DOWN)
     {
@@ -185,6 +185,8 @@ public class ServerNode : IServerNode
     // Probably a lock if I where to guess
     foreach (IServerNode server in _otherServersInCluster)
     {
+      server.SetNextIndexToAsync(new SetNextIndexToArgs(_id, _term, _logs.NextIndex));
+      // If any respond with a rejection, I need to handle that soon
       Thread thread = new(() => runSendHeartbeatsToServerAsync(server));
       thread.Start();
       _heartbeatThreads.Add(thread);
@@ -294,8 +296,9 @@ public class ServerNode : IServerNode
 
   public async Task AppendLogRPCAsync(string log)
   {
+    // TODO: Make sure I am the leader
     RPCFromLeaderArgs appendLogArgs = new(_id, _term, log);
-    appendLog(log);
+    appendLog(_term, log);
 
     foreach (IServerNode server in _otherServersInCluster)
     {
@@ -303,8 +306,14 @@ public class ServerNode : IServerNode
     }
   }
 
-  void appendLog(string log)
+  void appendLog(uint term, string log)
   {
-    _logs.Add(log);
+    _logs.Add(term, log);
+  }
+
+  public async Task SetNextIndexToAsync(SetNextIndexToArgs args)
+  {
+    await Task.CompletedTask;
+    _logs.SetNextIndexTo(args.NextIndex);
   }
 }

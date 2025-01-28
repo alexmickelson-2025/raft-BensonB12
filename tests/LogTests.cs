@@ -61,7 +61,8 @@ public class LogTests
     await leaderServer.AppendLogRPCAsync(log);
 
     // Then
-    leaderServer.Logs.Should().BeEquivalentTo([log]);
+    leaderServer.Logs.Count().Should().Be(1);
+    leaderServer.Logs[0].Log.Should().Be(log);
   }
 
   /// <summary>
@@ -75,6 +76,42 @@ public class LogTests
 
     // When & Then
     leaderServer.Logs.Should().BeEmpty();
+  }
+
+  /// <summary>
+  /// Testing Logs #4
+  /// </summary>
+  [Fact]
+  public void WhenALeaderWinsAnElectionItInitializesTheNextIndexCorrectly()
+  {
+    // Given
+    ServerNode leaderNode = new();
+
+    // When
+    Utils.WaitForElectionTimerToRunOut();
+
+    // Then
+    leaderNode.Logs.NextIndex.Should().Be(0);
+  }
+
+  /// <summary>
+  /// Testing Logs #4
+  /// </summary>
+  [Fact]
+  public async Task WhenALeaderWinsAnElectionItInitializesTheNextIndexForEachFollowerToIndexJustAfterTheLastLog()
+  {
+    // Given
+    IServerNode followerNode = Utils.CreateIServerNodeSubstituteWithId(1);
+    ServerNode leaderServer = new();
+
+    Utils.ServersVoteForLeaderWhenAsked([followerNode], leaderServer);
+    leaderServer.AddServersToCluster([followerNode]);
+
+    // When
+    Utils.WaitForElectionTimerToRunOut();
+
+    // Then
+    await followerNode.Received().SetNextIndexToAsync(Arg.Is<SetNextIndexToArgs>(args => args.NextIndex == 0));
   }
 }
 

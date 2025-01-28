@@ -41,7 +41,7 @@ public class VoteTests
     ServerNode server = new([leaderServer]);
 
     // When
-    await server.TryToVoteForAsync(leaderId, server.Term + 1);
+    await server.RegisterVoteForAsync(leaderId, server.Term + 1);
 
     // Then
     await leaderServer.Received().CountVoteAsync(true);
@@ -80,8 +80,8 @@ public class VoteTests
     ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
     // When
-    await server.TryToVoteForAsync(candidateOneId, term);
-    await server.TryToVoteForAsync(candidateTwoId, term);
+    await server.RegisterVoteForAsync(candidateOneId, term);
+    await server.RegisterVoteForAsync(candidateTwoId, term);
 
     // Then
     await candidateServerTwo.Received().CountVoteAsync(false);
@@ -103,8 +103,8 @@ public class VoteTests
     ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
     // When
-    await server.TryToVoteForAsync(candidateOneId, term);
-    await server.TryToVoteForAsync(candidateTwoId, term + 1);
+    await server.RegisterVoteForAsync(candidateOneId, term);
+    await server.RegisterVoteForAsync(candidateTwoId, term + 1);
 
     // Then
     await candidateServerTwo.Received().CountVoteAsync(true);
