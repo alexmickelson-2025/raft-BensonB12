@@ -26,7 +26,7 @@ public class PausingTests
       // Wait
     }
 
-    leaderServer.PauseServer();
+    leaderServer.Pause();
     int callsSoFar = follower.ReceivedCalls().Count();
     Utils.WaitForHeartbeatTimerToRunOut();
 
@@ -53,9 +53,9 @@ public class PausingTests
       // Wait
     }
 
-    leaderServer.PauseServer();
+    leaderServer.Pause();
     int callsSoFar = follower.ReceivedCalls().Count();
-    leaderServer.UnpauseServer();
+    leaderServer.Unpause();
     Utils.WaitForHeartbeatTimerToRunOut();
 
     // Then
@@ -72,7 +72,7 @@ public class PausingTests
     ServerNode server = new();
 
     // When
-    server.PauseServer();
+    server.Pause();
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
@@ -90,13 +90,16 @@ public class PausingTests
     ServerNode server = new([otherServer]);
 
     // When
-    server.PauseServer();
+    server.Pause();
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
     await otherServer.DidNotReceive().ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>());
   }
 
+  /// <summary>
+  /// Testing Pausing #4
+  /// </summary>
   [Fact]
   public void WhenAFollowerGetsPausedAndUnpausedItStillBecomesACandidate()
   {
@@ -104,11 +107,31 @@ public class PausingTests
     ServerNode server = new();
 
     // When
-    server.PauseServer();
-    server.UnpauseServer();
+    server.Pause();
+    server.Unpause();
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
     server.State.Should().Be(ServerNodeState.LEADER);
+  }
+
+  /// <summary>
+  /// Testing Pausing #5
+  /// </summary>
+  [Fact]
+  public async Task WhenServerIsPausedItDoesNotVote()
+  {
+    // Given
+    int otherServerId = 1;
+
+    ServerNode server = new();
+    IServerNode otherServer = Utils.CreateIServerNodeSubstituteWithId(otherServerId);
+
+    // When
+    server.Pause();
+    await server.ThrowBalletForAsync(otherServerId, server.Term + 1);
+
+    // Then
+    await otherServer.DidNotReceiveWithAnyArgs().AcceptVoteAsync(Arg.Any<bool>());
   }
 }

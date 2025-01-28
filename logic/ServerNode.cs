@@ -198,7 +198,7 @@ public class ServerNode : IServerNode
     }
   }
 
-  public void PauseServer()
+  public void Pause()
   {
     _stateBeforePause = _state;
     _state = ServerNodeState.DOWN;
@@ -206,7 +206,7 @@ public class ServerNode : IServerNode
     stopAllHeartBeatThreads();
   }
 
-  public void UnpauseServer()
+  public void Unpause()
   {
     if (_stateBeforePause is null)
     {
