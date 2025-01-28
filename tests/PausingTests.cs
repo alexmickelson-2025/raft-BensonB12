@@ -96,4 +96,19 @@ public class PausingTests
     // Then
     await otherServer.DidNotReceive().ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>());
   }
+
+  [Fact]
+  public void WhenAFollowerGetsPausedAndUnpausedItStillBecomesACandidate()
+  {
+    // Given
+    ServerNode server = new();
+
+    // When
+    server.PauseServer();
+    server.UnpauseServer();
+    Utils.WaitForElectionTimerToRunOut();
+
+    // Then
+    server.State.Should().Be(ServerNodeState.LEADER);
+  }
 }
