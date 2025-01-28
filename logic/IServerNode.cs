@@ -7,11 +7,11 @@ public interface IServerNode
   uint Term { get; }
   System.Timers.Timer ElectionTimer { get; }
   int? ClusterLeaderId { get; }
-  void AddServersToServersCluster(IEnumerable<IServerNode> otherServers);
-  Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments);
+  void AddServersToCluster(IEnumerable<IServerNode> otherServers);
+  Task RPCFromLeaderAsync(RPCFromLeaderArgs args);
   void Pause();
   void Unpause();
-  Task AcceptVoteAsync(bool inSupport);
-  Task ThrowBalletForAsync(int id, uint term);
-  Task LeaderToFollowerRemoteProcedureCallResponse(int id, bool applied);
+  Task CountVoteAsync(bool inSupport);
+  Task TryToVoteForAsync(int id, uint term);
+  Task RPCResponseAsyncFromFollowerAsync(int id, bool applied);
 }

@@ -18,10 +18,10 @@ public class LogTests
     ServerNode server = new([leaderServer]);
 
     // When
-    await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
+    await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1));
 
     // Then
-    await leaderServer.Received().LeaderToFollowerRemoteProcedureCallResponse(server.Id, true);
+    await leaderServer.Received().RPCResponseAsyncFromFollowerAsync(server.Id, true);
   }
 
   /// <summary>

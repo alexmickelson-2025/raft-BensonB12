@@ -19,7 +19,7 @@ public class HeartbeatTests
     IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-    leaderServer.AddServersToServersCluster([followerServer]);
+    leaderServer.AddServersToCluster([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
@@ -46,7 +46,7 @@ public class HeartbeatTests
     ServerNode followerServer = new([leaderServer]);
 
     // When
-    await followerServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, 1));
+    await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1));
 
     // Then
     followerServer.ClusterLeaderId.Should().Be(leaderId);
@@ -70,7 +70,7 @@ public class HeartbeatTests
       // Do I do something here?
     }
 
-    await candidateServer.ReceiveLeaderToFollowerRemoteProcedureCallAsync(new LeaderToFollowerRemoteProcedureCallArguments(leaderId, candidateServer.Term + 1));
+    await candidateServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, candidateServer.Term + 1));
 
     // Then
     candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -88,12 +88,12 @@ public class HeartbeatTests
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
 
-    leaderServer.AddServersToServersCluster([followerServer]);
+    leaderServer.AddServersToCluster([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    followerServer.Received().ReceiveLeaderToFollowerRemoteProcedureCallAsync(Arg.Any<LeaderToFollowerRemoteProcedureCallArguments>());
+    followerServer.Received().RPCFromLeaderAsync(Arg.Any<RPCFromLeaderArgs>());
   }
 }

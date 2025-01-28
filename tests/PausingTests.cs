@@ -18,7 +18,7 @@ public class PausingTests
     ServerNode leaderServer = new();
 
     Utils.ServersVoteForLeaderWhenAsked([follower], leaderServer);
-    leaderServer.AddServersToServersCluster([follower]);
+    leaderServer.AddServersToCluster([follower]);
 
     // When
     while (leaderServer.State != ServerNodeState.LEADER)
@@ -45,14 +45,10 @@ public class PausingTests
     ServerNode leaderServer = new();
 
     Utils.ServersVoteForLeaderWhenAsked([follower], leaderServer);
-    leaderServer.AddServersToServersCluster([follower]);
+    leaderServer.AddServersToCluster([follower]);
 
     // When
-    while (leaderServer.State != ServerNodeState.LEADER)
-    {
-      // Wait
-    }
-
+    Utils.WaitForElectionTimerToRunOut();
     leaderServer.Pause();
     int callsSoFar = follower.ReceivedCalls().Count();
     leaderServer.Unpause();
@@ -94,7 +90,7 @@ public class PausingTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    await otherServer.DidNotReceive().ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>());
+    await otherServer.DidNotReceive().TryToVoteForAsync(Arg.Any<int>(), Arg.Any<uint>());
   }
 
   /// <summary>
@@ -129,9 +125,67 @@ public class PausingTests
 
     // When
     server.Pause();
-    await server.ThrowBalletForAsync(otherServerId, server.Term + 1);
+    await server.TryToVoteForAsync(otherServerId, server.Term + 1);
 
     // Then
-    await otherServer.DidNotReceiveWithAnyArgs().AcceptVoteAsync(Arg.Any<bool>());
+    await otherServer.DidNotReceiveWithAnyArgs().CountVoteAsync(Arg.Any<bool>());
+  }
+
+  /// <summary>
+  /// Testing Pausing #5
+  /// </summary>
+  [Fact]
+  public void WhenServerIsPausedItDoesNotLog()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Pausing #5
+  /// </summary>
+  [Fact]
+  public async Task WhenServerIsPausedItDoesNotRespondToLog()
+  {
+    // Given
+    int leaderId = 1;
+    ServerNode server = new();
+    IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
+
+    // When
+    server.Pause();
+    await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1));
+
+    // Then
+    await leaderServer.DidNotReceiveWithAnyArgs().RPCResponseAsyncFromFollowerAsync(Arg.Any<int>(), Arg.Any<bool>());
+  }
+
+  /// <summary>
+  /// Testing Pausing #5
+  /// </summary>
+  [Fact]
+  public void WhenServerIsPausedItDoesNotAcceptVote()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Pausing #6
+  /// </summary>
+  [Fact]
+  public void WhenServerIsUnpausedWithoutBeingPausedItThrowsError()
+  {
+    // Given
+
+    // When
+
+    // Then
   }
 }

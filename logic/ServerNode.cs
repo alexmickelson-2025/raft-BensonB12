@@ -36,20 +36,20 @@ public class ServerNode : IServerNode
   public ServerNode(IEnumerable<IServerNode> otherServers)
   {
     addElectionTimeOutProcedureEventToElectionTimer();
-    AddServersToServersCluster(otherServers);
+    AddServersToCluster(otherServers);
   }
 
   void addElectionTimeOutProcedureEventToElectionTimer()
   {
-    _electionTimer.Elapsed += async (sender, e) => await electionTimedOutProcedureAsync(sender, e);
+    _electionTimer.Elapsed += async (sender, e) => await startElection(sender, e);
   }
 
-  public void AddServersToServersCluster(IEnumerable<IServerNode> otherServers)
+  public void AddServersToCluster(IEnumerable<IServerNode> otherServers)
   {
     _otherServerNodesInCluster.AddRange(otherServers);
   }
 
-  async Task electionTimedOutProcedureAsync(object? sender, ElapsedEventArgs e)
+  async Task startElection(object? sender, ElapsedEventArgs e)
   {
     if (_state == ServerNodeState.CANDIDATE)
     {
@@ -62,19 +62,19 @@ public class ServerNode : IServerNode
 
     _term++;
     _hasVotedInTerm[_term] = false;
-    restartElectionFields();
-    restartElectionTimerWithNewRandomInterval();
+    discardOldVotes();
+    restartElectionTimerWithNewInterval();
 
     await runElectionForYourselfAsync();
   }
 
-  void restartElectionFields()
+  void discardOldVotes()
   {
     _votesForMyself = 1;
     _votesRejected = 0;
   }
 
-  void restartElectionTimerWithNewRandomInterval()
+  void restartElectionTimerWithNewInterval()
   {
     _electionTimer = Utils.NewElectionTimer();
     addElectionTimeOutProcedureEventToElectionTimer();
@@ -82,10 +82,46 @@ public class ServerNode : IServerNode
 
   async Task runElectionForYourselfAsync()
   {
-    if (await hasMajorityVotesAsync())
+    await askOtherNodesForVote();
+    waitForEnoughVotesFromOtherServers();
+
+    if (hasMajorityInFavorVotes())
     {
       becomeLeader();
     }
+
+    // Do I become a follower here? Do I stay a candidate?
+  }
+
+  async Task askOtherNodesForVote()
+  {
+    // Cannot do foreach because of they will update (Threading)
+    for (int i = 0; i < _otherServerNodesInCluster.Count; i++)
+    {
+      await petitionServerForSupport(_otherServerNodesInCluster[i].Id);
+    }
+  }
+
+  void waitForEnoughVotesFromOtherServers()
+  {
+    _electionCancellationFlag = false;
+    int numberOfNodes = _otherServerNodesInCluster.Count + 1;
+    int majority = (numberOfNodes / 2) + 1;
+
+    while (_votesForMyself < majority && _votesRejected < majority && !_electionCancellationFlag)
+    {
+      // Wait for calls
+    }
+  }
+
+  bool hasMajorityInFavorVotes()
+  {
+    int numberOfNodes = _otherServerNodesInCluster.Count + 1;
+    int majority = (numberOfNodes / 2) + 1;
+
+    return _votesForMyself >= majority;
+
+    // Do I become a follower? Or do I wait for a heartbeat?
   }
 
   void becomeLeader()
@@ -96,15 +132,16 @@ public class ServerNode : IServerNode
 
     // Watchout for updates to _otherServerNodesInCluster or the servers in them, it will throw an exception
     // Should probably test and then catch and handle cases for that
+    // Probably a lock if I where to guess
     foreach (IServerNode server in _otherServerNodesInCluster)
     {
-      Thread thread = new(() => runSendHeartbeatsToServerNodeAsync(server));
+      Thread thread = new(() => runSendHeartbeatsToServerAsync(server));
       thread.Start();
       _heartbeatThreads.Add(thread);
     }
   }
 
-  async void runSendHeartbeatsToServerNodeAsync(IServerNode server)
+  async void runSendHeartbeatsToServerAsync(IServerNode server)
   {
     while (_state == ServerNodeState.LEADER)
     {
@@ -115,44 +152,57 @@ public class ServerNode : IServerNode
 
   async Task sendHeartbeatToServerNodeAsync(IServerNode server)
   {
-    LeaderToFollowerRemoteProcedureCallArguments heartbeatArguments = new(_id, _term);
+    RPCFromLeaderArgs heartbeatArgs = new(_id, _term);
 
-    await server.ReceiveLeaderToFollowerRemoteProcedureCallAsync(heartbeatArguments);
+    await server.RPCFromLeaderAsync(heartbeatArgs);
   }
 
-  void stopAllHeartBeatThreads()
+  public async Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
   {
-    foreach (Thread thread in _heartbeatThreads)
+    IServerNode? leaderNode = _otherServerNodesInCluster.SingleOrDefault(server => server.Id == args.ServerId);
+    // Throw an error if leaderNode is null
+
+    if (leaderNode is null)
     {
-      // I am worried this might not work and we will need a cancellation token
-      thread.Join();
+      // Throw an error?
+      return;
     }
+
+    if (args.Term < _term)
+    {
+      await leaderNode.RPCResponseAsyncFromFollowerAsync(_id, false);
+    }
+
+    // If the term is the same, we have some corner cases to solve
+
+    _clusterLeaderId = args.ServerId;
+    _electionTimer.Stop();
+    _electionTimer.Start();
+
+    ServerNodeState oldState = _state;
+    _state = ServerNodeState.FOLLOWER;
+    // Maybe I should validate that the serverNodeId is in my cluster
+
+    if (oldState == ServerNodeState.LEADER)
+    {
+      // Handle if our terms match
+      stopAllHeartBeatThreads();
+      restartElectionTimerWithNewInterval();
+    }
+
+    _term = args.Term;
+    discardOldVotes();
+
+    await leaderNode.RPCResponseAsyncFromFollowerAsync(_id, true);
   }
 
-  async Task<bool> hasMajorityVotesAsync()
+  public async Task TryToVoteForAsync(int id, uint term)
   {
-    _electionCancellationFlag = false;
-    int numberOfNodes = _otherServerNodesInCluster.Count + 1;
-    int majority = (numberOfNodes / 2) + 1;
-
-    // Cannot do foreach because of they will update (Threading)
-    for (int i = 0; i < _otherServerNodesInCluster.Count; i++)
+    if (_state == ServerNodeState.DOWN)
     {
-      await petitionServerForSupport(_otherServerNodesInCluster[i].Id);
+      return;
     }
 
-    while (_votesForMyself < majority && _votesRejected < majority && !_electionCancellationFlag)
-    {
-      // Wait for calls
-    }
-
-    return _votesForMyself >= majority;
-
-    // Do I become a follower? Or do I wait for a heartbeat?
-  }
-
-  public async Task ThrowBalletForAsync(int id, uint term)
-  {
     if (_hasVotedInTerm.TryGetValue(term, out var value) && value)
     {
       await registerVoteToServerAsync(false, id, term);
@@ -165,26 +215,26 @@ public class ServerNode : IServerNode
 
   async Task petitionServerForSupport(int id)
   {
-    IServerNode? receivingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
+    IServerNode? votingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
 
-    if (receivingNode is not null)
+    if (votingNode is not null)
     {
-      await receivingNode.ThrowBalletForAsync(_id, _term); // Can only ask for a vote once per term
+      await votingNode.TryToVoteForAsync(_id, _term); // Can only ask for a vote once per term
     }
   }
 
   async Task registerVoteToServerAsync(bool inFavor, int id, uint newTerm)
   {
-    IServerNode? receivingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
+    IServerNode? candidate = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
 
-    if (receivingNode is not null)
+    if (candidate is not null)
     {
-      await receivingNode.AcceptVoteAsync(inFavor); // Can only send the vote once per term
+      await candidate.CountVoteAsync(inFavor); // Can only send the vote once per term
       _hasVotedInTerm[newTerm] = true;
     }
   }
 
-  public async Task AcceptVoteAsync(bool inFavor) // Does not care who sent the vote 
+  public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote 
   {
     await Task.CompletedTask;
 
@@ -196,6 +246,11 @@ public class ServerNode : IServerNode
     {
       _votesRejected++;
     }
+  }
+
+  public async Task RPCResponseAsyncFromFollowerAsync(int id, bool rejected)
+  {
+    await Task.CompletedTask;
   }
 
   public void Pause()
@@ -215,7 +270,7 @@ public class ServerNode : IServerNode
     _state = (ServerNodeState)_stateBeforePause;
     _stateBeforePause = null;
 
-    if (_state != ServerNodeState.LEADER)
+    if (_state == ServerNodeState.LEADER)
     {
       becomeLeader();
       return;
@@ -224,47 +279,12 @@ public class ServerNode : IServerNode
     ElectionTimer.Start();
   }
 
-  public async Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments)
+  void stopAllHeartBeatThreads()
   {
-    IServerNode? leaderNode = _otherServerNodesInCluster.SingleOrDefault(server => server.Id == arguments.ServerNodeId);
-    // Throw an error if leaderNode is null
-
-    if (leaderNode is null)
+    foreach (Thread thread in _heartbeatThreads)
     {
-      // Throw an error?
-      return;
+      // I am worried this might not work and we will need a cancellation token
+      thread.Join();
     }
-
-    if (arguments.Term < _term)
-    {
-      await leaderNode.LeaderToFollowerRemoteProcedureCallResponse(_id, false);
-    }
-
-    // If the term is the same, we have some corner cases to solve
-
-    _clusterLeaderId = arguments.ServerNodeId;
-    _electionTimer.Stop();
-    _electionTimer.Start();
-
-    ServerNodeState oldState = _state;
-    _state = ServerNodeState.FOLLOWER;
-    // Maybe I should validate that the serverNodeId is in my cluster
-
-    if (oldState == ServerNodeState.LEADER)
-    {
-      // Handle if our terms match
-      stopAllHeartBeatThreads();
-      restartElectionTimerWithNewRandomInterval();
-    }
-
-    _term = arguments.Term;
-    restartElectionFields();
-
-    await leaderNode.LeaderToFollowerRemoteProcedureCallResponse(_id, true);
-  }
-
-  public async Task LeaderToFollowerRemoteProcedureCallResponse(int id, bool rejected)
-  {
-    await Task.CompletedTask;
   }
 }

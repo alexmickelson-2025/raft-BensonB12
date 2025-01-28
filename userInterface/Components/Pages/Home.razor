@@ -46,9 +46,9 @@ Welcome to your new app.
     SimulationNode simulationTwo = new(nodeTwo);
     SimulationNode simulationThree = new(nodeThree);
 
-    nodeOne.AddServersToServersCluster([simulationTwo, simulationThree]);
-    nodeTwo.AddServersToServersCluster([simulationOne, simulationThree]);
-    nodeThree.AddServersToServersCluster([simulationOne, simulationTwo]);
+    nodeOne.AddServersToCluster([simulationTwo, simulationThree]);
+    nodeTwo.AddServersToCluster([simulationOne, simulationThree]);
+    nodeThree.AddServersToCluster([simulationOne, simulationTwo]);
 
     simulationNodes = [simulationOne, simulationTwo, simulationThree];
 

@@ -18,7 +18,7 @@ public class VoteTests
     IServerNode followerTwo = Utils.CreateIServerNodeSubstituteWithId(2);
 
     Utils.ServersVoteForLeaderWhenAsked([followerOne], leaderServer);
-    leaderServer.AddServersToServersCluster([followerOne, followerTwo]);
+    leaderServer.AddServersToCluster([followerOne, followerTwo]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
@@ -41,10 +41,10 @@ public class VoteTests
     ServerNode server = new([leaderServer]);
 
     // When
-    await server.ThrowBalletForAsync(leaderId, server.Term + 1);
+    await server.TryToVoteForAsync(leaderId, server.Term + 1);
 
     // Then
-    await leaderServer.Received().AcceptVoteAsync(true);
+    await leaderServer.Received().CountVoteAsync(true);
   }
 
   /// <summary>
@@ -80,11 +80,11 @@ public class VoteTests
     ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
     // When
-    await server.ThrowBalletForAsync(candidateOneId, term);
-    await server.ThrowBalletForAsync(candidateTwoId, term);
+    await server.TryToVoteForAsync(candidateOneId, term);
+    await server.TryToVoteForAsync(candidateTwoId, term);
 
     // Then
-    await candidateServerTwo.Received().AcceptVoteAsync(false);
+    await candidateServerTwo.Received().CountVoteAsync(false);
   }
 
   /// <summary>
@@ -103,10 +103,10 @@ public class VoteTests
     ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
     // When
-    await server.ThrowBalletForAsync(candidateOneId, term);
-    await server.ThrowBalletForAsync(candidateTwoId, term + 1);
+    await server.TryToVoteForAsync(candidateOneId, term);
+    await server.TryToVoteForAsync(candidateTwoId, term + 1);
 
     // Then
-    await candidateServerTwo.Received().AcceptVoteAsync(true);
+    await candidateServerTwo.Received().CountVoteAsync(true);
   }
 }

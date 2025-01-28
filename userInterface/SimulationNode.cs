@@ -20,14 +20,14 @@ public class SimulationNode : IServerNode
 
   public int? ClusterLeaderId => _innerServerNode.ClusterLeaderId;
 
-  public void AddServersToServersCluster(IEnumerable<IServerNode> otherServers)
+  public void AddServersToCluster(IEnumerable<IServerNode> otherServers)
   {
-    _innerServerNode.AddServersToServersCluster(otherServers);
+    _innerServerNode.AddServersToCluster(otherServers);
   }
 
-  public Task ReceiveLeaderToFollowerRemoteProcedureCallAsync(LeaderToFollowerRemoteProcedureCallArguments arguments)
+  public Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
   {
-    return _innerServerNode.ReceiveLeaderToFollowerRemoteProcedureCallAsync(arguments);
+    return _innerServerNode.RPCFromLeaderAsync(args);
   }
 
   public void Pause()
@@ -35,19 +35,19 @@ public class SimulationNode : IServerNode
     _innerServerNode.Pause();
   }
 
-  public Task AcceptVoteAsync(bool inSupport)
+  public Task CountVoteAsync(bool inSupport)
   {
-    return _innerServerNode.AcceptVoteAsync(inSupport);
+    return _innerServerNode.CountVoteAsync(inSupport);
   }
 
-  public Task ThrowBalletForAsync(int id, uint term)
+  public Task TryToVoteForAsync(int id, uint term)
   {
-    return _innerServerNode.ThrowBalletForAsync(id, term);
+    return _innerServerNode.TryToVoteForAsync(id, term);
   }
 
-  public Task LeaderToFollowerRemoteProcedureCallResponse(int id, bool rejected)
+  public Task RPCResponseAsyncFromFollowerAsync(int id, bool rejected)
   {
-    return _innerServerNode.LeaderToFollowerRemoteProcedureCallResponse(id, rejected);
+    return _innerServerNode.RPCResponseAsyncFromFollowerAsync(id, rejected);
   }
 
   public void Unpause()

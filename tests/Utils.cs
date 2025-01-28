@@ -29,10 +29,10 @@ public static class Utils
     foreach (IServerNode followerServer in followerServers)
     {
       followerServer
-        .WhenForAnyArgs(server => server.ThrowBalletForAsync(Arg.Any<int>(), Arg.Any<uint>()))
+        .WhenForAnyArgs(server => server.TryToVoteForAsync(Arg.Any<int>(), Arg.Any<uint>()))
               .Do(async _ =>
               {
-                await leaderServer.AcceptVoteAsync(true);
+                await leaderServer.CountVoteAsync(true);
               });
     }
   }
