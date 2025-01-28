@@ -41,7 +41,7 @@ public class ServerNode : IServerNode
 
   void addElectionTimeOutProcedureEventToElectionTimer()
   {
-    _electionTimer.Elapsed += async (sender, e) => await startElection(sender, e);
+    _electionTimer.Elapsed += async (sender, e) => await initiateElection(sender, e);
   }
 
   public void AddServersToCluster(IEnumerable<IServerNode> otherServers)
@@ -49,7 +49,7 @@ public class ServerNode : IServerNode
     _otherServerNodesInCluster.AddRange(otherServers);
   }
 
-  async Task startElection(object? sender, ElapsedEventArgs e)
+  async Task initiateElection(object? sender, ElapsedEventArgs e)
   {
     if (_state == ServerNodeState.CANDIDATE)
     {
@@ -65,7 +65,7 @@ public class ServerNode : IServerNode
     discardOldVotes();
     restartElectionTimerWithNewInterval();
 
-    await runElectionForYourselfAsync();
+    await runElection();
   }
 
   void discardOldVotes()
@@ -80,9 +80,9 @@ public class ServerNode : IServerNode
     addElectionTimeOutProcedureEventToElectionTimer();
   }
 
-  async Task runElectionForYourselfAsync()
+  async Task runElection()
   {
-    await askOtherNodesForVote();
+    await petitionOtherServersForVote();
     waitForEnoughVotesFromOtherServers();
 
     if (hasMajorityInFavorVotes())
@@ -93,12 +93,64 @@ public class ServerNode : IServerNode
     // Do I become a follower here? Do I stay a candidate?
   }
 
-  async Task askOtherNodesForVote()
+  async Task petitionOtherServersForVote()
   {
     // Cannot do foreach because of they will update (Threading)
     for (int i = 0; i < _otherServerNodesInCluster.Count; i++)
     {
-      await petitionServerForSupport(_otherServerNodesInCluster[i].Id);
+      await petitionServerForVote(_otherServerNodesInCluster[i].Id);
+    }
+  }
+
+  async Task petitionServerForVote(int id)
+  {
+    IServerNode? votingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
+
+    if (votingNode is not null)
+    {
+      await votingNode.TryToVoteForAsync(_id, _term); // Can only ask for a vote once per term
+    }
+  }
+
+  public async Task TryToVoteForAsync(int id, uint term)
+  {
+    if (_state == ServerNodeState.DOWN)
+    {
+      return;
+    }
+
+    if (_hasVotedInTerm.TryGetValue(term, out var value) && value)
+    {
+      await registerVoteToCandidateAsync(false, id, term);
+    }
+    else
+    {
+      await registerVoteToCandidateAsync(true, id, term);
+    }
+  }
+
+  async Task registerVoteToCandidateAsync(bool inFavor, int id, uint newTerm)
+  {
+    IServerNode? candidate = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
+
+    if (candidate is not null)
+    {
+      await candidate.CountVoteAsync(inFavor); // Can only send the vote once per term
+      _hasVotedInTerm[newTerm] = true;
+    }
+  }
+
+  public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote 
+  {
+    await Task.CompletedTask;
+
+    if (inFavor)
+    {
+      _votesForMyself++;
+    }
+    else
+    {
+      _votesRejected++;
     }
   }
 
@@ -145,12 +197,12 @@ public class ServerNode : IServerNode
   {
     while (_state == ServerNodeState.LEADER)
     {
-      await sendHeartbeatToServerNodeAsync(server);
+      await sendHeartbeatToServerAsync(server);
       Thread.Sleep(Constants.HEARTBEAT_PAUSE);
     }
   }
 
-  async Task sendHeartbeatToServerNodeAsync(IServerNode server)
+  async Task sendHeartbeatToServerAsync(IServerNode server)
   {
     RPCFromLeaderArgs heartbeatArgs = new(_id, _term);
 
@@ -191,61 +243,8 @@ public class ServerNode : IServerNode
     }
 
     _term = args.Term;
-    discardOldVotes();
 
     await leaderNode.RPCResponseAsyncFromFollowerAsync(_id, true);
-  }
-
-  public async Task TryToVoteForAsync(int id, uint term)
-  {
-    if (_state == ServerNodeState.DOWN)
-    {
-      return;
-    }
-
-    if (_hasVotedInTerm.TryGetValue(term, out var value) && value)
-    {
-      await registerVoteToServerAsync(false, id, term);
-    }
-    else
-    {
-      await registerVoteToServerAsync(true, id, term);
-    }
-  }
-
-  async Task petitionServerForSupport(int id)
-  {
-    IServerNode? votingNode = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
-
-    if (votingNode is not null)
-    {
-      await votingNode.TryToVoteForAsync(_id, _term); // Can only ask for a vote once per term
-    }
-  }
-
-  async Task registerVoteToServerAsync(bool inFavor, int id, uint newTerm)
-  {
-    IServerNode? candidate = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
-
-    if (candidate is not null)
-    {
-      await candidate.CountVoteAsync(inFavor); // Can only send the vote once per term
-      _hasVotedInTerm[newTerm] = true;
-    }
-  }
-
-  public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote 
-  {
-    await Task.CompletedTask;
-
-    if (inFavor)
-    {
-      _votesForMyself++;
-    }
-    else
-    {
-      _votesRejected++;
-    }
   }
 
   public async Task RPCResponseAsyncFromFollowerAsync(int id, bool rejected)
