@@ -1,6 +1,7 @@
 using Logic;
 using FluentAssertions;
 using NSubstitute;
+using System.Threading.Tasks;
 namespace Tests;
 
 public class LogTests
@@ -28,13 +29,20 @@ public class LogTests
   /// Testing Logs #1
   /// </summary>
   [Fact]
-  public void WhenALeaderReceivesAClientCommandTheLeaderSendsTheLogEntryInTheNextAppendEntryToAllNodes()
+  public async Task WhenALeaderReceivesAClientCommandTheLeaderSendsTheLogEntryInTheNextAppendEntryToAllNodes()
   {
     // Given
+    string log = "log";
+
+    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
+    ServerNode leaderServer = new([followerServer]);
 
     // When
+    Utils.WaitForElectionTimerToRunOut();
+    await leaderServer.AppendLogRPCAsync(log);
 
     // Then
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.Log == log));
   }
 
   /// <summary>

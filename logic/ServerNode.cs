@@ -18,7 +18,7 @@ public class ServerNode : IServerNode
   readonly Dictionary<uint, bool> _hasVotedInTerm = new() { { 0, false } };
   System.Timers.Timer _electionTimer = Utils.NewElectionTimer();
   public System.Timers.Timer ElectionTimer => _electionTimer;
-  List<IServerNode> _otherServerNodesInCluster = [];
+  List<IServerNode> _otherServersInCluster = [];
   List<Thread> _heartbeatThreads = [];
   int? _clusterLeaderId;
   public int? ClusterLeaderId => _clusterLeaderId;
@@ -48,7 +48,7 @@ public class ServerNode : IServerNode
 
   public void AddServersToCluster(IEnumerable<IServerNode> otherServers)
   {
-    _otherServerNodesInCluster.AddRange(otherServers);
+    _otherServersInCluster.AddRange(otherServers);
   }
 
   async Task initiateElection(object? sender, ElapsedEventArgs e)
@@ -99,9 +99,9 @@ public class ServerNode : IServerNode
   {
     // Cannot do foreach because of they will update (Threading)
     // TODO: Fix using a lock
-    for (int i = 0; i < _otherServerNodesInCluster.Count; i++)
+    for (int i = 0; i < _otherServersInCluster.Count; i++)
     {
-      await _otherServerNodesInCluster[i].TryToVoteForAsync(_id, _term);
+      await _otherServersInCluster[i].TryToVoteForAsync(_id, _term);
     }
   }
 
@@ -124,7 +124,7 @@ public class ServerNode : IServerNode
 
   async Task registerVoteToCandidateAsync(bool inFavor, int id, uint newTerm)
   {
-    IServerNode? candidate = _otherServerNodesInCluster.SingleOrDefault(n => n.Id == id);
+    IServerNode? candidate = _otherServersInCluster.SingleOrDefault(n => n.Id == id);
 
     if (candidate is null) // TODO: Test this
     {
@@ -152,7 +152,7 @@ public class ServerNode : IServerNode
   void waitForEnoughVotesFromOtherServers()
   {
     _electionCancellationFlag = false;
-    int numberOfNodes = _otherServerNodesInCluster.Count + 1;
+    int numberOfNodes = _otherServersInCluster.Count + 1;
     int majority = (numberOfNodes / 2) + 1;
 
     // TODO: re-write the wile loops that are sucking up CPU. I want to do an event listener ...
@@ -164,7 +164,7 @@ public class ServerNode : IServerNode
 
   bool hasMajorityInFavorVotes()
   {
-    int numberOfNodes = _otherServerNodesInCluster.Count + 1;
+    int numberOfNodes = _otherServersInCluster.Count + 1;
     int majority = (numberOfNodes / 2) + 1;
 
     return _votesForMyself >= majority;
@@ -181,7 +181,7 @@ public class ServerNode : IServerNode
     // Watchout for updates to _otherServerNodesInCluster or the servers in them, it will throw an exception
     // Should probably test and then catch and handle cases for that
     // Probably a lock if I where to guess
-    foreach (IServerNode server in _otherServerNodesInCluster)
+    foreach (IServerNode server in _otherServersInCluster)
     {
       Thread thread = new(() => runSendHeartbeatsToServerAsync(server));
       thread.Start();
@@ -213,7 +213,7 @@ public class ServerNode : IServerNode
       return;
     }
 
-    IServerNode? leaderNode = _otherServerNodesInCluster.SingleOrDefault(server => server.Id == args.ServerId);
+    IServerNode? leaderNode = _otherServersInCluster.SingleOrDefault(server => server.Id == args.ServerId);
     // Throw an error if leaderNode is null
 
     if (leaderNode is null)
@@ -224,6 +224,7 @@ public class ServerNode : IServerNode
     if (args.Term < _term)
     {
       await leaderNode.RPCResponseAsyncFromFollowerAsync(_id, false);
+      return;
     }
 
     // If the term is the same, we have some corner cases to solve
@@ -286,6 +287,16 @@ public class ServerNode : IServerNode
     {
       // I am worried this might not work and we will need a cancellation token
       thread.Join();
+    }
+  }
+
+  public async Task AppendLogRPCAsync(string log)
+  {
+    RPCFromLeaderArgs appendLogArgs = new(_id, _term, log);
+
+    foreach (IServerNode server in _otherServersInCluster)
+    {
+      await server.RPCFromLeaderAsync(appendLogArgs);
     }
   }
 }

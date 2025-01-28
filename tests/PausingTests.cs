@@ -133,7 +133,7 @@ public class PausingTests
   }
 
   /// <summary>
-  /// Testing Pausing #5
+  /// Testing Pausing #5 #TODO
   /// </summary>
   [Fact]
   public void WhenServerIsPausedItDoesNotLog()
