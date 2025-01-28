@@ -23,6 +23,8 @@ public class ServerNode : IServerNode
   int? _clusterLeaderId;
   public int? ClusterLeaderId => _clusterLeaderId;
   bool _electionCancellationFlag = false;
+  List<string> _logs = [];
+  public List<string> Logs => _logs;
 
   public ServerNode()
   {
@@ -293,10 +295,16 @@ public class ServerNode : IServerNode
   public async Task AppendLogRPCAsync(string log)
   {
     RPCFromLeaderArgs appendLogArgs = new(_id, _term, log);
+    appendLog(log);
 
     foreach (IServerNode server in _otherServersInCluster)
     {
       await server.RPCFromLeaderAsync(appendLogArgs);
     }
+  }
+
+  void appendLog(string log)
+  {
+    _logs.Add(log);
   }
 }

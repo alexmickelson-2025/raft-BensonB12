@@ -49,13 +49,19 @@ public class LogTests
   /// TestingLogs #2
   /// </summary>
   [Fact]
-  public void WhenALeaderReceivesACommandFromTheClientItIsAppendedToItsLog()
+  public async Task WhenALeaderReceivesACommandFromTheClientItIsAppendedToItsLog()
   {
     // Given
+    string log = "log";
+
+    ServerNode leaderServer = new();
 
     // When
+    Utils.WaitForElectionTimerToRunOut();
+    await leaderServer.AppendLogRPCAsync(log);
 
     // Then
+    leaderServer.Logs.Should().BeEquivalentTo([log]);
   }
 
   /// <summary>
@@ -65,10 +71,10 @@ public class LogTests
   public void WhenAServerIsNewItsLogIsEmpty()
   {
     // Given
+    ServerNode leaderServer = new();
 
-    // When
-
-    // Then
+    // When & Then
+    leaderServer.Logs.Should().BeEmpty();
   }
 }
 
