@@ -136,13 +136,17 @@ public class PausingTests
   /// Testing Pausing #5 #TODO
   /// </summary>
   [Fact]
-  public void WhenServerIsPausedItDoesNotLog()
+  public async Task WhenServerIsPausedItDoesNotLog()
   {
     // Given
+    ServerNode server = new();
 
     // When
+    server.Pause();
+    await server.AppendLogRPCAsync("log");
 
     // Then
+    server.Logs.Should().BeEmpty();
   }
 
   /// <summary>
