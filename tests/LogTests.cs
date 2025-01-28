@@ -159,6 +159,279 @@ public class LogTests
     // Then
     await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.LogIndex == 1)); // It will be a list of logs eventually
   }
+
+  /// <summary>
+  /// Testing Logs #7
+  /// </summary>
+  [Fact]
+  public void WhenAFollowerLearnsThatALogEntryIsCommittedItAppliesTehEntryToItsLocalStateMachine()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #8
+  /// </summary>
+  [Fact]
+  public void WhenTheLeaderHasReceivedAMajorityConfirmationOfALogItCommitsTheLog()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #9
+  /// </summary>
+  [Fact]
+  public void TheLeaderCommitsLogsByIncrementingItsCommittedLogIndex()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #10
+  /// </summary>
+  [Fact]
+  public void GivenAFollowerReceivesAnRPCFromLeaderWithLogsItAddsThoseLogsToPersonalLog()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #11
+  /// </summary>
+  [Fact]
+  public void FollowersRespondToRPCFromLeaderIncludesTheTermAndLogIndex()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #12
+  /// </summary>
+  [Fact]
+  public void WhenALeaderReceivesAMajorityResponsesFromTheClientAfterALogReplicationHeartbeatTheLeaderSendsAConfirmationToClient()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #13
+  /// </summary>
+  [Fact]
+  public void WhenALeaderHasACommittedLogItAppliesItToItsInternalStateMachine()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #14
+  /// </summary>
+  [Fact]
+  public void WhenAFollowerReceivesAValidHeartbeatItIncreasesItsCommitIndexToMatchTheCommitIndexOfTheHeartbeat()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #14
+  /// </summary>
+  [Fact]
+  public void WhenAFollowerReceivesAdHeartbeatThatDoesNotMatchItsIndexItRejectsIt()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #15
+  /// </summary>
+  [Fact]
+  public void WhenSendingAnRPCFromLeaderItIncludesTheIndexAndTermOfTheEntryInItsLogThatIsImmediatelyBeforeTheNewEntries()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #15
+  /// </summary>
+  [Fact]
+  public void FollowerRefusesRPCFromLeaderIfRPCDoesNotHaveALogWithTheSameIndexAndTermThenRefusesTheNewEntries()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #15
+  /// </summary>
+  [Fact]
+  public void FollowerRefusesRPCFromLeaderIfRPCDoesNotHaveTheSameTerm()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #15
+  /// </summary>
+  [Fact]
+  public void FollowerRefusesRPCFromLeaderIfRPCDoesNotHaveANewerTerm()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #15
+  /// </summary>
+  [Fact]
+  public void FollowerHasItsIndexDecreasedByLeaderIfIndexIsGreater()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #15
+  /// </summary>
+  [Fact]
+  public void FollowerDeletesWhatTheyHaveIfIndexIsLessThanOurs()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #15
+  /// </summary>
+  [Fact]
+  public void WhenFollowerRejectsLeaderDecrementsNextIndexForThatFollowerAndTriesAgain()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #16
+  /// </summary>
+  [Fact]
+  public void WhenALeaderSendsAHeartbeatWithALogButDoesNotReceiveResponsesFromAMajorityTheEntryIsUncommitted()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #17
+  /// </summary>
+  [Fact]
+  public void IfLeaderDoesNotReceiveAResponseFromAFollowerTheLeaderContinuesToSendLogEntriesWithThoseLogsInNextHeartbeats()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #18
+  /// </summary>
+  [Fact]
+  public void IfALeaderCannotCommitAnEntryIDoesNotSendAResponseToTheClient()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #19
+  /// </summary>
+  [Fact]
+  public void IfAServerReceivesAnRPCFromLeaderWithLogsThatAreTooFarInTheFutureFromThatServersLocalStateServerRejectsTheRPC()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
+
+  /// <summary>
+  /// Testing Logs #20
+  /// </summary>
+  [Fact]
+  public void IfFollowerReceivesRPCFromLeaderWithTermAndIndexThatDoNotMatchFollowerRejectsTheRPCUntilItFindsAMatchingLog()
+  {
+    // Given
+
+    // When
+
+    // Then
+  }
 }
 
 // A follower rejects a candidate vote if it has larger committed logs
