@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using FluentAssertions;
 using Logic.Exceptions;
 using Logic.Models.Args;
