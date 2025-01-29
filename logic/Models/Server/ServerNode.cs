@@ -64,9 +64,9 @@ public class ServerNode : IServerNode
 
   async Task initiateElection(object? _, ElapsedEventArgs __)
   {
-    if (_state == ServerNodeState.CANDIDATE)
+    if (serverIsACandidate())
     {
-      _electionCancellationFlag = true;
+      stopPreviousElection();
     }
     else
     {
@@ -79,6 +79,11 @@ public class ServerNode : IServerNode
     restartElectionTimerWithNewInterval();
 
     await runElection();
+  }
+
+  void stopPreviousElection()
+  {
+    _electionCancellationFlag = true;
   }
 
   void discardOldVotes()
@@ -118,22 +123,22 @@ public class ServerNode : IServerNode
 
   public async Task RegisterVoteForAsync(int id, uint term)
   {
-    if (_state == ServerNodeState.DOWN)
+    if (serverIsDown())
     {
       return;
     }
 
-    if (_hasVotedInTerm.TryGetValue(term, out var value) && value)
+    if (hasVotedInThisTerm(term))
     {
-      await registerVoteToCandidateAsync(false, id, term);
+      await registerInFavorVoteToCandidateAsync(false, id, term);
     }
     else
     {
-      await registerVoteToCandidateAsync(true, id, term);
+      await registerInFavorVoteToCandidateAsync(true, id, term);
     }
   }
 
-  async Task registerVoteToCandidateAsync(bool inFavor, int id, uint newTerm)
+  async Task registerInFavorVoteToCandidateAsync(bool inFavor, int id, uint newTerm)
   {
     IServerNode? candidate = _otherServersInCluster.SingleOrDefault(n => n.Id == id);
 
@@ -148,7 +153,10 @@ public class ServerNode : IServerNode
 
   public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote, the servers are restricted to only vote once per term. Maybe I should take the term then?
   {
-    await Task.CompletedTask;
+    if (serverIsDown())
+    {
+      return;
+    }
 
     if (inFavor)
     {
@@ -158,19 +166,37 @@ public class ServerNode : IServerNode
     {
       _votesRejected++;
     }
+
+    await Task.CompletedTask;
   }
 
   void waitForEnoughVotesFromOtherServers()
   {
-    _electionCancellationFlag = false;
-    int numberOfNodes = _otherServersInCluster.Count + 1;
-    int majority = (numberOfNodes / 2) + 1;
+    letNewElectionRun();
 
     // TODO: re-write the wile loops that are sucking up CPU. I want to do an event listener ...
-    while (_votesForMyself < majority && _votesRejected < majority && !_electionCancellationFlag)
+    while (thereAreNotEnoughVotes() && theElectionIsStillGoing())
     {
       // Wait for calls
     }
+  }
+
+  void letNewElectionRun()
+  {
+    _electionCancellationFlag = false;
+  }
+
+  bool theElectionIsStillGoing()
+  {
+    return !_electionCancellationFlag;
+  }
+
+  bool thereAreNotEnoughVotes()
+  {
+    int numberOfNodes = _otherServersInCluster.Count + 1;
+    int majority = (numberOfNodes / 2) + 1;
+
+    return _votesForMyself < majority && _votesRejected < majority;
   }
 
   bool hasMajorityInFavorVotes()
@@ -204,7 +230,7 @@ public class ServerNode : IServerNode
 
   async void runSendHeartbeatsToServerAsync(IServerNode server)
   {
-    while (_state == ServerNodeState.LEADER)
+    while (serverIsTheLeader())
     {
       await sendHeartbeatToServerAsync(server);
       Thread.Sleep(Constants.HEARTBEAT_PAUSE);
@@ -221,7 +247,7 @@ public class ServerNode : IServerNode
   // TODO: Refactor this method down
   public async Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
   {
-    if (_state == ServerNodeState.DOWN)
+    if (serverIsDown())
     {
       return;
     }
@@ -285,7 +311,7 @@ public class ServerNode : IServerNode
     _state = (ServerNodeState)_stateBeforePause;
     _stateBeforePause = null;
 
-    if (_state == ServerNodeState.LEADER)
+    if (serverIsTheLeader())
     {
       becomeLeader();
       return;
@@ -305,7 +331,7 @@ public class ServerNode : IServerNode
 
   public async Task AppendLogRPCAsync(string log)
   {
-    if (_state == ServerNodeState.DOWN)
+    if (serverIsDown())
     {
       return;
     }
@@ -329,5 +355,25 @@ public class ServerNode : IServerNode
   {
     await Task.CompletedTask;
     _logs.SetNextIndexTo(args.NextIndex);
+  }
+
+  bool serverIsDown()
+  {
+    return _state == ServerNodeState.DOWN;
+  }
+
+  bool serverIsTheLeader()
+  {
+    return _state == ServerNodeState.LEADER;
+  }
+
+  bool serverIsACandidate()
+  {
+    return _state == ServerNodeState.CANDIDATE;
+  }
+
+  bool hasVotedInThisTerm(uint term)
+  {
+    return _hasVotedInTerm.TryGetValue(term, out var value) && value;
   }
 }

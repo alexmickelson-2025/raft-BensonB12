@@ -53,7 +53,7 @@ public class ClientTests
   /// Testing Logs #12
   /// </summary>
   [Fact]
-  public void WhenALeaderReceivesAMajorityResponsesFromTheClientAfterALogReplicationHeartbeatTheLeaderSendsAConfirmationToClient()
+  public void WhenALeaderReceivesAMajorityResponsesAfterALogReplicationHeartbeatTheLeaderSendsAConfirmationToClient()
   {
     // Given
 

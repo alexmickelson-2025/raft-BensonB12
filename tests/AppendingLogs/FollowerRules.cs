@@ -48,7 +48,7 @@ public class FollowerRules
   /// Testing Logs #7
   /// </summary>
   [Fact]
-  public void WhenAFollowerLearnsThatALogEntryIsCommittedItAppliesTehEntryToItsLocalStateMachine()
+  public void WhenAFollowerLearnsThatALogEntryIsCommittedItAppliesTheEntryToItsLocalStateMachine()
   {
     // Given
 
