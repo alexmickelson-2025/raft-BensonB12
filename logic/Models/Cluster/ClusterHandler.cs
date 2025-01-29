@@ -74,14 +74,11 @@ public class ClusterHandler
   // TODO: Make a RPC Handler
   public async Task RPCFromFollowerAsync(int id, bool rejected)
   {
-    await Task.CompletedTask;
+    await _inComingCallsClusterHandler.RPCFromFollowerAsync(id, rejected);
   }
 
-  public async Task SendRPCFromLeaderToEachFollower(RPCFromLeaderArgs rpcFromLeaderArgs)
+  public async Task SendRPCFromLeaderToEachFollowerAsync(RPCFromLeaderArgs rpcFromLeaderArgs)
   {
-    foreach (IServerNode server in _clusterData.OtherServersInCluster)
-    {
-      await server.RPCFromLeaderAsync(rpcFromLeaderArgs);
-    }
+    await _outGoingCallsClusterHandler.SendRPCFromLeaderToEachFollowerAsync(rpcFromLeaderArgs);
   }
 }

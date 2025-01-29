@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace Logic.Models;
+namespace Logic.Models.Server.Logging;
 
 public class Logs : IEnumerable<LogData>
 {

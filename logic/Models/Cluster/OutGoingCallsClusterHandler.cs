@@ -104,4 +104,12 @@ public class OutGoingCallsClusterHandler
       // If any respond with a rejection, I need to handle that soon
     }
   }
+
+  public async Task SendRPCFromLeaderToEachFollowerAsync(RPCFromLeaderArgs rpcFromLeaderArgs)
+  {
+    foreach (IServerNode server in _clusterData.OtherServersInCluster)
+    {
+      await server.RPCFromLeaderAsync(rpcFromLeaderArgs);
+    }
+  }
 }

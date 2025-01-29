@@ -53,4 +53,9 @@ public class IncomingCallsClusterHandler
 
     await Task.CompletedTask;
   }
+
+  public async Task RPCFromFollowerAsync(int id, bool rejected)
+  {
+    await Task.CompletedTask;
+  }
 }

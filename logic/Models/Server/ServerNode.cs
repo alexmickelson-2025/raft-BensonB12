@@ -2,6 +2,7 @@
 using Logic.Exceptions;
 using Logic.Models.Args;
 using Logic.Models.Cluster;
+using Logic.Models.Server.Logging;
 using Logic.Utils;
 
 namespace Logic.Models.Server;
@@ -35,6 +36,12 @@ public class ServerNode : IServerNode
 
   public ServerNode(IEnumerable<IServerNode> otherServers)
   {
+    initializeServer(otherServers);
+  }
+
+  public ServerNode(int id, IEnumerable<IServerNode> otherServers)
+  {
+    _serverData = new ServerData(id);
     initializeServer(otherServers);
   }
 
@@ -209,7 +216,7 @@ public class ServerNode : IServerNode
     appendLog(_serverData.Term, log);
     RPCFromLeaderArgs appendLogArgs = new(_serverData.Id, _serverData.Term, log, _logs.NextIndex);
 
-    await _clusterHandler.SendRPCFromLeaderToEachFollower(appendLogArgs);
+    await _clusterHandler.SendRPCFromLeaderToEachFollowerAsync(appendLogArgs);
   }
 
   void appendLog(uint term, string log)
