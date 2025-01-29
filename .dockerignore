@@ -1,0 +1,10 @@
+.vscode
+bin/
+obj/
+Dockerfile
+dev.Dockerfile
+docker-compose.yml
+.gitignore
+README.m
+NotesInClass.md
+OriginalTestCases.md

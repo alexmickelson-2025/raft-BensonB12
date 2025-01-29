@@ -27,3 +27,20 @@ blahName()
 - We want the tests to reflect the algorithm, not the implantation of the algorithm
 - If the candidate knows that it failed the election, it waits for the time out to try again
 - Do not test the infinite candidate looping
+
+# Docker
+
+### Rest CLient project
+
+n = new Node();
+
+What steps need to happen to set up your cluster
+
+- Two other nodes
+- timers start
+- Turn on endpoints
+- /request/append
+- /request/vote
+- /response/append
+- /response/vote
+- /command
