@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Logic.Models.Args;
 using Logic.Models.Server;
 using NSubstitute;

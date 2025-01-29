@@ -1,9 +1,7 @@
-﻿using System.Timers;
-using Logic.Exceptions;
+﻿using Logic.Exceptions;
 using Logic.Models.Args;
 using Logic.Models.Cluster;
-using Logic.Models.Server.Logging;
-using Logic.Utils;
+using Logic.Models.Server.Election;
 
 namespace Logic.Models.Server;
 
@@ -14,42 +12,12 @@ public class ServerNode : IServerNode
   public int Id => _serverData.Id;
   public ServerNodeState State => _serverData.State;
   public uint Term => _serverData.Term;
-  System.Timers.Timer _electionTimer = Util.NewElectionTimer();
-  public System.Timers.Timer ElectionTimer => _electionTimer;
-  public int? ClusterLeaderId => _clusterHandler.ClusterLeaderId;
-  bool _electionCancellationFlag = false;
+  ElectionHandler _electionHandler = null!;
 
-  public ServerNode()
-  {
-    initializeServer([]);
-  }
-
-  public ServerNode(int id)
+  public ServerNode(IEnumerable<IServerNode>? otherServers = null, int? id = null)
   {
     _serverData = new ServerData(id);
-    initializeServer([]);
-  }
-
-  public ServerNode(IEnumerable<IServerNode> otherServers)
-  {
-    initializeServer(otherServers);
-  }
-
-  public ServerNode(int id, IEnumerable<IServerNode> otherServers)
-  {
-    _serverData = new ServerData(id);
-    initializeServer(otherServers);
-  }
-
-  void initializeServer(IEnumerable<IServerNode> otherServers)
-  {
-    addElectionTimeOutProcedureEventToElectionTimer();
-    InitializeClusterWithServers(otherServers);
-  }
-
-  void addElectionTimeOutProcedureEventToElectionTimer()
-  {
-    _electionTimer.Elapsed += async (sender, e) => await initiateElection(sender, e);
+    InitializeClusterWithServers(otherServers ?? []);
   }
 
   public void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers)
@@ -60,50 +28,8 @@ public class ServerNode : IServerNode
     }
 
     _clusterHandler = new ClusterHandler(otherServers, _serverData);
-  }
-
-  async Task initiateElection(object? _, ElapsedEventArgs __)
-  {
-    if (_serverData.ServerIsACandidate())
-    {
-      stopPreviousElection();
-    }
-    else
-    {
-      _serverData.SetState(ServerNodeState.CANDIDATE);
-    }
-
-    _serverData.Term++;
-    _serverData.HasVotedInTerm[_serverData.Term] = true; // TODO: add to to make sure it does not vote for others
-    _clusterHandler.DiscardOldVotes();
-    restartElectionTimerWithNewInterval();
-
-    await runElection();
-  }
-
-  void stopPreviousElection()
-  {
-    _electionCancellationFlag = true;
-  }
-
-  void restartElectionTimerWithNewInterval()
-  {
-    _electionTimer = Util.NewElectionTimer();
-    addElectionTimeOutProcedureEventToElectionTimer();
-  }
-
-  async Task runElection()
-  {
-    await _clusterHandler.PetitionOtherServersToVoteAsync();
-    letNewElectionRun();
-    _clusterHandler.WaitForEnoughVotesFromOtherServers(theElectionIsStillGoing()); // I might need to pass by reference
-
-    if (_clusterHandler.HasMajorityInFavorVotes())
-    {
-      await becomeLeader();
-    }
-
-    // Do I become a follower here? Do I stay a candidate?
+    _electionHandler = new ElectionHandler(_serverData, _clusterHandler);
+    _electionHandler.AddElectionTimeOutProcedureEventToElectionTimer();
   }
 
   public async Task RegisterVoteForAsync(int id, uint term)
@@ -114,26 +40,6 @@ public class ServerNode : IServerNode
   public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote, the servers are restricted to only vote once per term. Maybe I should take the term then?
   {
     await _clusterHandler.CountVoteAsync(inFavor);
-  }
-
-  void letNewElectionRun()
-  {
-    _electionCancellationFlag = false;
-  }
-
-  bool theElectionIsStillGoing()
-  {
-    return !_electionCancellationFlag;
-  }
-
-  async Task becomeLeader()
-  {
-    _serverData.SetState(ServerNodeState.LEADER);
-    _clusterHandler.ClusterLeaderId = _serverData.Id;
-    _electionTimer.Stop();
-
-    await _clusterHandler.SetFollowersNextIndexToAsync();
-    _clusterHandler.StartSendingHeartbeatsToEachOtherServer();
   }
 
   // TODO: Refactor this method down
@@ -155,8 +61,7 @@ public class ServerNode : IServerNode
     // If the term is the same, we have some corner cases to solve
 
     _clusterHandler.ClusterLeaderId = args.ServerId;
-    _electionTimer.Stop();
-    _electionTimer.Start();
+    _electionHandler.RestartElectionTimeout();
 
     ServerNodeState oldState = _serverData.State;
     _serverData.SetState(ServerNodeState.FOLLOWER);
@@ -166,7 +71,7 @@ public class ServerNode : IServerNode
     {
       // Handle if our terms match
       _clusterHandler.StopAllHeartBeatThreads();
-      restartElectionTimerWithNewInterval();
+      _electionHandler.RestartElectionTimerWithNewInterval();
     }
 
     _serverData.Term = args.Term;
@@ -179,26 +84,14 @@ public class ServerNode : IServerNode
     await _clusterHandler.RPCFromFollowerAsync(id, rejected);
   }
 
-  public void Pause()
+  public async Task Pause()
   {
-    _serverData.StateBeforePause = _serverData.State;
-    _serverData.SetState(ServerNodeState.DOWN);
-    _electionTimer.Stop();
-    _clusterHandler.StopAllHeartBeatThreads();
+    await _electionHandler.Pause();
   }
 
   public async Task Unpause()
   {
-    _serverData.SetState(_serverData.StateBeforePause);
-    _serverData.StateBeforePause = null;
-
-    if (_serverData.ServerIsTheLeader())
-    {
-      await becomeLeader();
-      return;
-    }
-
-    ElectionTimer.Start();
+    await _electionHandler.Unpause();
   }
 
   public async Task AppendLogRPCAsync(string log)

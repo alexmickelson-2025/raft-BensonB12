@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Logic.Models.Args;
 using Logic.Models.Server;
 
@@ -18,10 +17,6 @@ public class SimulationNode : IServerNode
 
   public uint Term => _innerServerNode.Term;
 
-  public System.Timers.Timer ElectionTimer => _innerServerNode.ElectionTimer;
-
-  public int? ClusterLeaderId => _innerServerNode.ClusterLeaderId;
-
   public void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers)
   {
     _innerServerNode.InitializeClusterWithServers(otherServers);
@@ -32,9 +27,9 @@ public class SimulationNode : IServerNode
     return _innerServerNode.RPCFromLeaderAsync(args);
   }
 
-  public void Pause()
+  public async Task Pause()
   {
-    _innerServerNode.Pause();
+    await _innerServerNode.Pause();
   }
 
   public Task CountVoteAsync(bool inSupport)

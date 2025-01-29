@@ -1,6 +1,4 @@
-using Logic.Models.Args;
 using Logic.Models.Server;
-using Logic.Models.Server.Logging;
 
 namespace Logic.Models.Cluster;
 
@@ -19,11 +17,6 @@ public class ClusterHandler
   }
 
   public bool ClusterIsEmpty => _clusterData.OtherServersInCluster.Count < 1;
-
-  public void DiscardOldVotes()
-  {
-    _outGoingCallsClusterHandler.DiscardOldVotes();
-  }
 
   public async Task PetitionOtherServersToVoteAsync()
   {

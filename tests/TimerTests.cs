@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Logic.Models.Args;
 using Logic.Models.Server;
+using Logic.Models.Server.Election;
 using Logic.Utils;
 
 namespace Tests;
@@ -14,17 +15,17 @@ public class ElectionTimerTests
   public void WhenTheElectionTimeIsResetItIsARandomValueBetweenTheElectionTimerConstants()
   {
     // Given / When
-    List<ServerNode> servers = [];
+    List<ElectionData> electionTimerObjects = [];
 
     for (int i = 0; i < 10; i++)
     {
-      servers.Add(new());
+      electionTimerObjects.Add(new());
     }
 
     // Then
-    foreach (ServerNode server in servers)
+    foreach (ElectionData timerObj in electionTimerObjects)
     {
-      server.ElectionTimer.Interval.Should().BeInRange(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME - 1);
+      timerObj.ElectionTimer.Interval.Should().BeInRange(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME - 1);
     }
   }
 
@@ -35,14 +36,14 @@ public class ElectionTimerTests
   public void WhenTheElectionTimeIsResetItIsARandomValueBetweenOtherServers()
   {
     // Given / When
-    List<ServerNode> servers = [];
+    List<ElectionData> electionTimerObjects = [];
 
     for (int i = 0; i < 10; i++)
     {
-      servers.Add(new());
+      electionTimerObjects.Add(new());
     }
 
-    IEnumerable<IGrouping<double, ServerNode>> intervalsSet = servers.GroupBy(server => server.ElectionTimer.Interval);
+    IEnumerable<IGrouping<double, ElectionData>> intervalsSet = electionTimerObjects.GroupBy(obj => obj.ElectionTimer.Interval);
 
     // Then
     intervalsSet.Count().Should().NotBe(1);

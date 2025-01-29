@@ -12,12 +12,6 @@ public class OutGoingCallsClusterHandler
     _clusterData = clusterData;
   }
 
-  public void DiscardOldVotes()
-  {
-    _clusterData.VotesInFavorForServer = 1;
-    _clusterData.VotesNotInFavorForServer = 0;
-  }
-
   public async Task PetitionOtherServersToVoteAsync()
   {
     // Cannot do foreach because of they will update (Threading)
@@ -42,7 +36,7 @@ public class OutGoingCallsClusterHandler
     int numberOfNodes = _clusterData.OtherServersInCluster.Count + 1;
     int majority = (numberOfNodes / 2) + 1;
 
-    return _clusterData.VotesInFavorForServer < majority && _clusterData.VotesNotInFavorForServer < majority;
+    return _clusterData.ServerData.VotesInFavorForServer < majority && _clusterData.ServerData.VotesNotInFavorForServer < majority;
   }
 
   public void StartSendingHeartbeatsToEachOtherServer()
@@ -88,7 +82,7 @@ public class OutGoingCallsClusterHandler
     int numberOfNodes = _clusterData.OtherServersInCluster.Count + 1;
     int majority = (numberOfNodes / 2) + 1;
 
-    return _clusterData.VotesInFavorForServer >= majority;
+    return _clusterData.ServerData.VotesInFavorForServer >= majority;
 
     // Do I become a follower? Or do I wait for a heartbeat?
   }
@@ -107,7 +101,7 @@ public class OutGoingCallsClusterHandler
 
   public async Task SendRPCFromLeaderToEachFollowerAsync(string log)
   {
-    RPCFromLeaderArgs rpcFromLeaderArgs = new(_clusterData.ServerData.Id, _clusterData.ServerData.Term, log, _clusterData.LogHandler.NextIndex);
+    RPCFromLeaderArgs rpcFromLeaderArgs = new(_clusterData.ServerData.Id, _clusterData.ServerData.Term, log, _clusterData.ServerData.NextIndex);
 
     foreach (IServerNode server in _clusterData.OtherServersInCluster)
     {

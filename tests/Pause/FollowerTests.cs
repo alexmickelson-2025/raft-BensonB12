@@ -19,11 +19,12 @@ public class FollowerTests
     ServerNode server = new();
 
     // When
-    server.Pause();
+    await server.Pause();
     await server.AppendLogRPCAsync("log");
 
     // Then
-    server.LogMessages.Should().BeEmpty();
+    // server.LogMessages.Should().BeEmpty();
+    Assert.Fail();
   }
 
   /// <summary>
@@ -39,7 +40,7 @@ public class FollowerTests
     ServerNode server = new([leaderServer]);
 
     // When
-    server.Pause();
+    await server.Pause();
     await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1));
 
     // Then

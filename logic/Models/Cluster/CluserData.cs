@@ -6,8 +6,6 @@ namespace Logic.Models.Cluster;
 
 public class ClusterData
 {
-  public int VotesInFavorForServer { get; set; } = 1;
-  public int VotesNotInFavorForServer { get; set; } = 0;
   public List<IServerNode> OtherServersInCluster { get; } = [];
   public int? ClusterLeaderId { get; set; }
   public List<Thread> HeartbeatThreads { get; } = [];

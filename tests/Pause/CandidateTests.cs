@@ -11,13 +11,13 @@ public class CandidateTests
   /// Testing Pausing #3
   /// </summary>
   [Fact]
-  public void WhenServerGetsPausedTheyDoNotBecomeACandidate()
+  public async Task WhenServerGetsPausedTheyDoNotBecomeACandidate()
   {
     // Given
     ServerNode server = new();
 
     // When
-    server.Pause();
+    await server.Pause();
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
@@ -35,7 +35,7 @@ public class CandidateTests
     ServerNode server = new([otherServer]);
 
     // When
-    server.Pause();
+    await server.Pause();
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
@@ -52,7 +52,7 @@ public class CandidateTests
     ServerNode server = new();
 
     // When
-    server.Pause();
+    await server.Pause();
     await server.Unpause();
     Utils.WaitForElectionTimerToRunOut();
 
@@ -72,7 +72,7 @@ public class CandidateTests
     ServerNode server = new([candidateServer]);
 
     // When
-    server.Pause();
+    await server.Pause();
     await server.RegisterVoteForAsync(candidateId, server.Term + 1);
     Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
 
@@ -93,7 +93,7 @@ public class CandidateTests
     ServerNode server = new([otherServer]);
 
     // When
-    server.Pause();
+    await server.Pause();
     await server.RegisterVoteForAsync(otherServerId, server.Term + 1);
 
     // Then

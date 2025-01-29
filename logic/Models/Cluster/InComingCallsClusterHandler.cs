@@ -44,11 +44,11 @@ public class IncomingCallsClusterHandler
 
     if (inFavor)
     {
-      _clusterData.VotesInFavorForServer++;
+      _clusterData.ServerData.VotesInFavorForServer++;
     }
     else
     {
-      _clusterData.VotesNotInFavorForServer++;
+      _clusterData.ServerData.VotesNotInFavorForServer++;
     }
 
     await Task.CompletedTask;

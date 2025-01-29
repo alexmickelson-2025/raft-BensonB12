@@ -50,7 +50,7 @@ public class LeaderTests
 
     // When
     Utils.WaitForElectionTimerToRunOut();
-    leaderServer.Pause();
+    await leaderServer.Pause();
     int callsSoFar = follower.ReceivedCalls().Count();
     await leaderServer.Unpause();
     Utils.WaitForHeartbeatTimerToRunOut();

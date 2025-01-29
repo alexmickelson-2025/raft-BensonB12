@@ -7,17 +7,18 @@ namespace Logic.Models.Server;
 public class ServerData
 {
   Logs _logs = [];
-  public int Id { get; } = Util.GenerateUniqueServerNodeId();
+  public int VotesInFavorForServer { get; set; } = 1;
+  public int VotesNotInFavorForServer { get; set; } = 0;
+  public int Id { get; }
   public ServerNodeState State { get; private set; } = ServerNodeState.FOLLOWER;
   public ServerNodeState? StateBeforePause { get; set; }
   public uint Term { get; set; } = 0;
+  public int NextIndex => _logs.NextIndex;
   public Dictionary<uint, bool> HasVotedInTerm { get; set; } = new() { { 0, false } };
 
-  public ServerData() { }
-
-  public ServerData(int id)
+  public ServerData(int? id = null)
   {
-    Id = id;
+    Id = id ?? Util.GenerateUniqueServerNodeId();
   }
 
   public void SetState(ServerNodeState? newState)

@@ -51,7 +51,8 @@ public class HeartbeatTests
     await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1));
 
     // Then
-    followerServer.ClusterLeaderId.Should().Be(leaderId);
+    // followerServer.ClusterLeaderId.Should().Be(leaderId);
+    Assert.Fail();
   }
 
   /// <summary>
