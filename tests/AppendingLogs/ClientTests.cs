@@ -19,7 +19,7 @@ public class ClientTests
     ServerNode leaderServer = new();
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-    leaderServer.AddServersToCluster([followerServer]);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();

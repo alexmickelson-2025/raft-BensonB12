@@ -18,7 +18,7 @@ public class VoteTests
     IServerNode followerTwo = Utils.CreateIServerNodeSubstituteWithId(2);
 
     Utils.ServersVoteForLeaderWhenAsked([followerOne], leaderServer);
-    leaderServer.AddServersToCluster([followerOne, followerTwo]);
+    leaderServer.InitializeClusterWithServers([followerOne, followerTwo]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();

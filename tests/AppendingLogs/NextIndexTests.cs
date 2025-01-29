@@ -46,7 +46,7 @@ public class LogTests
     ServerNode leaderServer = new();
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-    leaderServer.AddServersToCluster([followerServer]);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
@@ -68,7 +68,7 @@ public class LogTests
     ServerNode leaderServer = new();
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-    leaderServer.AddServersToCluster([followerServer]);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
@@ -88,7 +88,7 @@ public class LogTests
     ServerNode leaderServer = new();
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-    leaderServer.AddServersToCluster([followerServer]);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();

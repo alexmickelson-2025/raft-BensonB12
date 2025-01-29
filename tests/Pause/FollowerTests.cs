@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using FluentAssertions;
 using Logic.Exceptions;
 using Logic.Models.Args;
@@ -49,14 +50,14 @@ public class FollowerTests
   /// Testing Pausing #6
   /// </summary>
   [Fact]
-  public void WhenServerIsUnpausedWithoutBeingPausedItThrowsError()
+  public async Task WhenServerIsUnpausedWithoutBeingPausedItThrowsError()
   {
     // Given
     ServerNode server = new();
 
     // When & Then
-    FluentActions.Invoking(() => server.Unpause())
+    await FluentActions.Invoking(() => server.Unpause())
         .Should()
-        .Throw<UnpausedARunningServerException>();
+        .ThrowAsync<UnpausedARunningServerException>();
   }
 }

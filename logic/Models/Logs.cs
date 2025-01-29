@@ -37,5 +37,20 @@ public class Logs : IEnumerable<LogData>
 
     return true;
   }
+
+  public int LatestCommittedLogIndex()
+  {
+    return _logs.Count;
+  }
+
+  public int LastAppliedLogIndex()
+  {
+    return _logs.Count;
+  }
+
+  public bool CanExceptLog()
+  {
+    return true;
+  }
 }
 

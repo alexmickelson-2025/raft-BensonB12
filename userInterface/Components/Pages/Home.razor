@@ -1,4 +1,5 @@
 ﻿@using Logic;
+@using Logic.Models.Server
 @using UserInterface
 @rendermode InteractiveServer
 @page "/"
@@ -52,9 +53,9 @@ Welcome to your new app.
     SimulationNode simulationTwo = new(nodeTwo);
     SimulationNode simulationThree = new(nodeThree);
 
-    nodeOne.AddServersToCluster([simulationTwo, simulationThree]);
-    nodeTwo.AddServersToCluster([simulationOne, simulationThree]);
-    nodeThree.AddServersToCluster([simulationOne, simulationTwo]);
+    nodeOne.InitializeClusterWithServers([simulationTwo, simulationThree]);
+    nodeTwo.InitializeClusterWithServers([simulationOne, simulationThree]);
+    nodeThree.InitializeClusterWithServers([simulationOne, simulationTwo]);
 
     simulationNodes = [simulationOne, simulationTwo, simulationThree];
 

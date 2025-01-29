@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using FluentAssertions;
 using Logic.Models.Server;
 using NSubstitute;
@@ -45,14 +46,14 @@ public class CandidateTests
   /// Testing Pausing #4
   /// </summary>
   [Fact]
-  public void WhenAFollowerGetsPausedAndUnpausedItStillBecomesACandidate()
+  public async Task WhenAFollowerGetsPausedAndUnpausedItStillBecomesACandidate()
   {
     // Given
     ServerNode server = new();
 
     // When
     server.Pause();
-    server.Unpause();
+    await server.Unpause();
     Utils.WaitForElectionTimerToRunOut();
 
     // Then

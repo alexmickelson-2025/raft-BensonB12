@@ -21,7 +21,7 @@ public class HeartbeatTests
     IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-    leaderServer.AddServersToCluster([followerServer]);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
@@ -90,7 +90,7 @@ public class HeartbeatTests
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
 
-    leaderServer.AddServersToCluster([followerServer]);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();

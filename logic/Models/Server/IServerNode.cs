@@ -9,10 +9,10 @@ public interface IServerNode
   uint Term { get; }
   System.Timers.Timer ElectionTimer { get; }
   int? ClusterLeaderId { get; }
-  void AddServersToCluster(IEnumerable<IServerNode> otherServers);
+  void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers);
   Task RPCFromLeaderAsync(RPCFromLeaderArgs args);
   void Pause();
-  void Unpause();
+  Task Unpause();
   Task CountVoteAsync(bool inSupport);
   Task RegisterVoteForAsync(int id, uint term);
   Task RPCFromFollowerAsync(int id, bool applied);

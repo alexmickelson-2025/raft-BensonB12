@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Logic.Models.Args;
 using Logic.Models.Server;
 
@@ -21,9 +22,9 @@ public class SimulationNode : IServerNode
 
   public int? ClusterLeaderId => _innerServerNode.ClusterLeaderId;
 
-  public void AddServersToCluster(IEnumerable<IServerNode> otherServers)
+  public void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers)
   {
-    _innerServerNode.AddServersToCluster(otherServers);
+    _innerServerNode.InitializeClusterWithServers(otherServers);
   }
 
   public Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
@@ -51,9 +52,9 @@ public class SimulationNode : IServerNode
     return _innerServerNode.RPCFromFollowerAsync(id, rejected);
   }
 
-  public void Unpause()
+  public async Task Unpause()
   {
-    _innerServerNode.Unpause();
+    await _innerServerNode.Unpause();
   }
 
   public Task SetNextIndexToAsync(SetNextIndexToArgs args)
