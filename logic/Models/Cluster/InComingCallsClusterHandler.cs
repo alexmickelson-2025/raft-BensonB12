@@ -1,6 +1,6 @@
-using Logic.Exceptions;
+using Logic.Models.Server;
 
-namespace Logic.Models.Server;
+namespace Logic.Models.Cluster;
 
 public class IncomingCallsClusterHandler
 {

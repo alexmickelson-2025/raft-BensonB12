@@ -1,8 +1,7 @@
-using System.Threading.Tasks;
-using Logic.Exceptions;
 using Logic.Models.Args;
+using Logic.Models.Server;
 
-namespace Logic.Models.Server;
+namespace Logic.Models.Cluster;
 
 public class ClusterHandler
 {

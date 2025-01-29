@@ -1,6 +1,7 @@
 ﻿using System.Timers;
 using Logic.Exceptions;
 using Logic.Models.Args;
+using Logic.Models.Cluster;
 using Logic.Utils;
 
 namespace Logic.Models.Server;
