@@ -305,6 +305,11 @@ public class ServerNode : IServerNode
 
   public async Task AppendLogRPCAsync(string log)
   {
+    if (_state == ServerNodeState.DOWN)
+    {
+      return;
+    }
+
     // TODO: Make sure I am the leader
     appendLog(_term, log);
     RPCFromLeaderArgs appendLogArgs = new(_id, _term, log, _logs.NextIndex);

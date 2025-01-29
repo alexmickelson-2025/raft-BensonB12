@@ -1,5 +1,5 @@
-using Logic;
 using Logic.Models.Server;
+using Logic.Utils;
 using NSubstitute;
 
 namespace Tests;
