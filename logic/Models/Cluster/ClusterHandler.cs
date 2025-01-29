@@ -1,5 +1,6 @@
 using Logic.Models.Args;
 using Logic.Models.Server;
+using Logic.Models.Server.Logging;
 
 namespace Logic.Models.Cluster;
 
@@ -9,8 +10,6 @@ public class ClusterHandler
   OutGoingCallsClusterHandler _outGoingCallsClusterHandler;
   IncomingCallsClusterHandler _inComingCallsClusterHandler;
   public int? ClusterLeaderId { get => _clusterData.ClusterLeaderId; set => _clusterData.ClusterLeaderId = value; }
-  public Dictionary<int, int> FollowerToNextIndex { get => _clusterData.FollowerToNextIndex; set => _clusterData.FollowerToNextIndex = value; }
-
 
   public ClusterHandler(IEnumerable<IServerNode> otherServers, ServerData serverData)
   {
@@ -61,9 +60,9 @@ public class ClusterHandler
     _outGoingCallsClusterHandler.StopAllHeartBeatThreads();
   }
 
-  public async Task SetFollowersNextIndexToAsync(int nextIndex)
+  public async Task SetFollowersNextIndexToAsync()
   {
-    await _outGoingCallsClusterHandler.SetFollowersNextIndexToAsync(nextIndex);
+    await _outGoingCallsClusterHandler.SetFollowersNextIndexToAsync(_clusterData.LogHandler.NextIndex);
   }
 
   public IServerNode GetServer(int serverId)
@@ -77,8 +76,8 @@ public class ClusterHandler
     await _inComingCallsClusterHandler.RPCFromFollowerAsync(id, rejected);
   }
 
-  public async Task SendRPCFromLeaderToEachFollowerAsync(RPCFromLeaderArgs rpcFromLeaderArgs)
+  public async Task SendRPCFromLeaderToEachFollowerAsync(string log)
   {
-    await _outGoingCallsClusterHandler.SendRPCFromLeaderToEachFollowerAsync(rpcFromLeaderArgs);
+    await _outGoingCallsClusterHandler.SendRPCFromLeaderToEachFollowerAsync(log);
   }
 }

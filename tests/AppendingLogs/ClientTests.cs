@@ -45,8 +45,9 @@ public class ClientTests
     await leaderServer.AppendLogRPCAsync(log);
 
     // Then
-    leaderServer.Logs.Count().Should().Be(1);
-    leaderServer.Logs[0].Log.Should().Be(log);
+    // leaderServer.LogMessages.Count().Should().Be(1);
+    // leaderServer.LogMessages.First().Should().Be(log);
+    Assert.Fail();
   }
 
   /// <summary>

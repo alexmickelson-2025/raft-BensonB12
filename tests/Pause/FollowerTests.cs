@@ -23,7 +23,7 @@ public class FollowerTests
     await server.AppendLogRPCAsync("log");
 
     // Then
-    server.Logs.Should().BeEmpty();
+    server.LogMessages.Should().BeEmpty();
   }
 
   /// <summary>

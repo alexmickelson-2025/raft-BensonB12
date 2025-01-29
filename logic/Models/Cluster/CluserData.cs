@@ -1,5 +1,6 @@
 using Logic.Exceptions;
 using Logic.Models.Server;
+using Logic.Models.Server.Logging;
 
 namespace Logic.Models.Cluster;
 
@@ -9,24 +10,16 @@ public class ClusterData
   public int VotesNotInFavorForServer { get; set; } = 0;
   public List<IServerNode> OtherServersInCluster { get; } = [];
   public int? ClusterLeaderId { get; set; }
-  public Dictionary<int, int> FollowerToNextIndex { get; set; } = [];
   public List<Thread> HeartbeatThreads { get; } = [];
   public ServerData ServerData { get; }
+  public LogHandler LogHandler { get; }
 
   public ClusterData(IEnumerable<IServerNode> otherServers, ServerData serverData)
   {
     // If anyone has the same ID, throw exception
     ServerData = serverData;
-    createNextIndexAccountsForeachServer(otherServers);
+    LogHandler = new LogHandler(otherServers.Select(server => server.Id));
     OtherServersInCluster.AddRange(otherServers);
-  }
-
-  void createNextIndexAccountsForeachServer(IEnumerable<IServerNode> servers)
-  {
-    foreach (IServerNode server in servers)
-    {
-      FollowerToNextIndex[server.Id] = 0;
-    }
   }
 
   public IServerNode GetServer(int serverId)

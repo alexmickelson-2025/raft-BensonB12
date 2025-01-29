@@ -1,6 +1,3 @@
-using Logic;
-using FluentAssertions;
-using NSubstitute;
 namespace Tests.AppendingLogs;
 
 public class FollowerRejectBecauseLogs

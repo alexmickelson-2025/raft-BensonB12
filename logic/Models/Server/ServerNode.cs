@@ -7,7 +7,6 @@ using Logic.Utils;
 
 namespace Logic.Models.Server;
 
-// TODO: Refactor this class down
 public class ServerNode : IServerNode
 {
   ServerData _serverData = new();
@@ -19,9 +18,6 @@ public class ServerNode : IServerNode
   public System.Timers.Timer ElectionTimer => _electionTimer;
   public int? ClusterLeaderId => _clusterHandler.ClusterLeaderId;
   bool _electionCancellationFlag = false;
-  Logs _logs = [];
-  public Logs Logs => _logs;
-  public Dictionary<int, int> FollowerToNextIndex => _clusterHandler.FollowerToNextIndex; // Throw an error if I am not the leader
 
   public ServerNode()
   {
@@ -136,7 +132,7 @@ public class ServerNode : IServerNode
     _clusterHandler.ClusterLeaderId = _serverData.Id;
     _electionTimer.Stop();
 
-    await _clusterHandler.SetFollowersNextIndexToAsync(_logs.NextIndex);
+    await _clusterHandler.SetFollowersNextIndexToAsync();
     _clusterHandler.StartSendingHeartbeatsToEachOtherServer();
   }
 
@@ -214,19 +210,18 @@ public class ServerNode : IServerNode
 
     // TODO: Make sure I am the leader
     appendLog(_serverData.Term, log);
-    RPCFromLeaderArgs appendLogArgs = new(_serverData.Id, _serverData.Term, log, _logs.NextIndex);
 
-    await _clusterHandler.SendRPCFromLeaderToEachFollowerAsync(appendLogArgs);
+    await _clusterHandler.SendRPCFromLeaderToEachFollowerAsync(log);
   }
 
   void appendLog(uint term, string log)
   {
-    _logs.Add(term, log);
+    _serverData.AddToLocalMemory(term, log);
   }
 
   public async Task SetNextIndexToAsync(SetNextIndexToArgs args)
   {
     await Task.CompletedTask;
-    _logs.SetNextIndexTo(args.NextIndex);
+    _serverData.SetNextIndexTo(args.NextIndex);
   }
 }

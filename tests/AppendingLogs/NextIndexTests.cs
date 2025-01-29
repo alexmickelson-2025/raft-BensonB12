@@ -16,7 +16,8 @@ public class LogTests
     ServerNode leaderServer = new();
 
     // When & Then
-    leaderServer.Logs.Should().BeEmpty();
+    // leaderServer.LogMessages.Should().BeEmpty();
+    Assert.Fail();
   }
 
   /// <summary>
@@ -32,7 +33,8 @@ public class LogTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    leaderServer.Logs.NextIndex.Should().Be(0);
+    // leaderServer.LogMessages.NextIndex.Should().Be(0);
+    Assert.Fail();
   }
 
   /// <summary>
@@ -74,7 +76,8 @@ public class LogTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    leaderServer.FollowerToNextIndex[followerId].Should().Be(0);
+    // leaderServer.FollowerToNextIndex[followerId].Should().Be(0);
+    Assert.Fail();
   }
 
   /// <summary>

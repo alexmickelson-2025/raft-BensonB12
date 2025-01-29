@@ -105,8 +105,10 @@ public class OutGoingCallsClusterHandler
     }
   }
 
-  public async Task SendRPCFromLeaderToEachFollowerAsync(RPCFromLeaderArgs rpcFromLeaderArgs)
+  public async Task SendRPCFromLeaderToEachFollowerAsync(string log)
   {
+    RPCFromLeaderArgs rpcFromLeaderArgs = new(_clusterData.ServerData.Id, _clusterData.ServerData.Term, log, _clusterData.LogHandler.NextIndex);
+
     foreach (IServerNode server in _clusterData.OtherServersInCluster)
     {
       await server.RPCFromLeaderAsync(rpcFromLeaderArgs);
