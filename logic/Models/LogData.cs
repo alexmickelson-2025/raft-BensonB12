@@ -1,4 +1,4 @@
-namespace Logic;
+namespace Logic.Models;
 
 public class LogData
 {

@@ -1,8 +1,8 @@
 using FluentAssertions;
 using NSubstitute;
-using Logic;
+using Logic.Models.Server;
 
-namespace Tests;
+namespace Tests.Election;
 
 public class VoteTests
 {

@@ -1,4 +1,6 @@
-namespace Logic;
+using Logic.Models.Args;
+
+namespace Logic.Models.Server;
 
 public interface IServerNode
 {

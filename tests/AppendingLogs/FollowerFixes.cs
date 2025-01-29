@@ -1,7 +1,7 @@
 using Logic;
 using FluentAssertions;
 using NSubstitute;
-namespace Tests.Logs;
+namespace Tests.AppendingLogs;
 
 public class FollowerFixes
 {

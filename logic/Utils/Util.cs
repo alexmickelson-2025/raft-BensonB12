@@ -1,6 +1,6 @@
-namespace Logic;
+namespace Logic.Utils;
 
-public static class Utils
+public static class Util
 {
   public static int GenerateUniqueServerNodeId()
   {

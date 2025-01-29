@@ -1,6 +1,7 @@
 using FluentAssertions;
-using Logic;
 using Logic.Exceptions;
+using Logic.Models.Args;
+using Logic.Models.Server;
 using NSubstitute;
 
 namespace Tests.Pause;

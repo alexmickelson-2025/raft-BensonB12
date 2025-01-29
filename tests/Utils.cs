@@ -1,4 +1,5 @@
 using Logic;
+using Logic.Models.Server;
 using NSubstitute;
 
 namespace Tests;
@@ -35,5 +36,10 @@ public static class Utils
                 await leaderServer.CountVoteAsync(true);
               });
     }
+  }
+
+  internal static void ServersVoteForLeaderWhenAsked(object value, ServerNode leaderServer)
+  {
+    throw new NotImplementedException();
   }
 }

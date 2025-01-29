@@ -1,7 +1,8 @@
-using Logic;
 using FluentAssertions;
 using NSubstitute;
-namespace Tests.Logs;
+using Logic.Models.Server;
+using Logic.Models.Args;
+namespace Tests.AppendingLogs;
 
 public class LogTests
 {

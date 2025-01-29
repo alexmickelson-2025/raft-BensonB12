@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Logic;
+using Logic.Models.Server;
 using NSubstitute;
 
 namespace Tests.Pause;

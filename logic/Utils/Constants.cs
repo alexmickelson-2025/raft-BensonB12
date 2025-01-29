@@ -1,5 +1,5 @@
 
-namespace Logic;
+namespace Logic.Utils;
 
 public static class Constants
 {

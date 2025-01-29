@@ -1,4 +1,5 @@
-using Logic;
+using Logic.Models.Args;
+using Logic.Models.Server;
 
 namespace UserInterface;
 

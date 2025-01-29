@@ -1,14 +1,16 @@
 ﻿using System.Timers;
 using Logic.Exceptions;
+using Logic.Models.Args;
+using Logic.Utils;
 
-namespace Logic;
+namespace Logic.Models.Server;
 
 // TODO: Refactor this class down
 public class ServerNode : IServerNode
 {
   int _votesForMyself = 1;
   int _votesRejected = 0;
-  readonly int _id = Utils.GenerateUniqueServerNodeId();
+  readonly int _id = Util.GenerateUniqueServerNodeId();
   public int Id => _id;
   ServerNodeState _state = ServerNodeState.FOLLOWER;
   ServerNodeState? _stateBeforePause;
@@ -16,7 +18,7 @@ public class ServerNode : IServerNode
   uint _term = 0;
   public uint Term => _term;
   readonly Dictionary<uint, bool> _hasVotedInTerm = new() { { 0, false } };
-  System.Timers.Timer _electionTimer = Utils.NewElectionTimer();
+  System.Timers.Timer _electionTimer = Util.NewElectionTimer();
   public System.Timers.Timer ElectionTimer => _electionTimer;
   List<IServerNode> _otherServersInCluster = [];
   List<Thread> _heartbeatThreads = [];
@@ -87,7 +89,7 @@ public class ServerNode : IServerNode
 
   void restartElectionTimerWithNewInterval()
   {
-    _electionTimer = Utils.NewElectionTimer();
+    _electionTimer = Util.NewElectionTimer();
     addElectionTimeOutProcedureEventToElectionTimer();
   }
 

@@ -1,7 +1,5 @@
-using System.Threading.Tasks;
 using FluentAssertions;
-using Logic;
-using Logic.Exceptions;
+using Logic.Models.Server;
 using NSubstitute;
 
 namespace Tests.Pause;
