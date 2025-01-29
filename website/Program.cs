@@ -52,7 +52,7 @@ public class Program
 
     ServerNode.NodeIntervalScalar = double.Parse(nodeIntervalScalarRaw);
 
-    node.RunElectionLoop();
+    // node.RunElectionLoop();
 
     app.MapGet("/health", () => "healthy");
 
