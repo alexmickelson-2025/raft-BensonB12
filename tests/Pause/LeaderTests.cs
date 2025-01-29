@@ -27,6 +27,7 @@ public class LeaderTests
     }
 
     leaderServer.Pause();
+    Thread.Sleep(Utils.GENERAL_BUFFER_TIME); // I have to wait for the thread to come back. I need to fix that
     int callsSoFar = follower.ReceivedCalls().Count();
     Utils.WaitForHeartbeatTimerToRunOut();
 
