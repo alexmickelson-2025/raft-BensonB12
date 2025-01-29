@@ -1,0 +1,61 @@
+using FluentAssertions;
+using Logic;
+using Logic.Exceptions;
+using NSubstitute;
+
+namespace Tests.Pause;
+
+public class FollowerTests
+{
+  /// <summary>
+  /// Testing Pausing #5
+  /// </summary>
+  [Fact]
+  public async Task WhenServerIsPausedItDoesNotLog()
+  {
+    // Given
+    ServerNode server = new();
+
+    // When
+    server.Pause();
+    await server.AppendLogRPCAsync("log");
+
+    // Then
+    server.Logs.Should().BeEmpty();
+  }
+
+  /// <summary>
+  /// Testing Pausing #5
+  /// </summary>
+  [Fact]
+  public async Task WhenServerIsPausedItDoesNotRespondToLog()
+  {
+    // Given
+    int leaderId = 1;
+
+    IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
+    ServerNode server = new([leaderServer]);
+
+    // When
+    server.Pause();
+    await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1));
+
+    // Then
+    await leaderServer.DidNotReceiveWithAnyArgs().RPCFromFollowerAsync(Arg.Any<int>(), Arg.Any<bool>());
+  }
+
+  /// <summary>
+  /// Testing Pausing #6
+  /// </summary>
+  [Fact]
+  public void WhenServerIsUnpausedWithoutBeingPausedItThrowsError()
+  {
+    // Given
+    ServerNode server = new();
+
+    // When & Then
+    FluentActions.Invoking(() => server.Unpause())
+        .Should()
+        .Throw<UnpausedARunningServerException>();
+  }
+}
