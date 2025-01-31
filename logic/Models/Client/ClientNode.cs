@@ -31,8 +31,8 @@ public class ClientNode : IClientNode
       await _leaderNode.RPCFromClientAsync(new Args.RPCFromClientArgs(_id, log));
     }
 
-    int randomServerIndex = Random.Shared.Next(_serverNodes.Count());
-    await _serverNodes[randomServerIndex].RPCFromClientAsync(new Args.RPCFromClientArgs(_id, log);
+    int randomServerIndex = Random.Shared.Next(_serverNodes.Count);
+    await _serverNodes[randomServerIndex].RPCFromClientAsync(new Args.RPCFromClientArgs(_id, log));
 
     Thread.Sleep(Constants.CLUSTER_WAITS_FOR_RESPONSE_INTERVAL);
 
