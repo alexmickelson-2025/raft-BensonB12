@@ -100,6 +100,6 @@ public class HeartbeatTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    followerServer.Received().RPCFromLeaderAsync(Arg.Any<RPCFromLeaderArgs>());
+    followerServer.ReceivedWithAnyArgs().RPCFromLeaderAsync(Arg.Any<RPCFromLeaderArgs>());
   }
 }

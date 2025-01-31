@@ -39,7 +39,7 @@ public class CandidateTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    await otherServer.DidNotReceive().RegisterVoteForAsync(Arg.Any<int>(), Arg.Any<uint>());
+    await otherServer.DidNotReceiveWithAnyArgs().RegisterVoteForAsync(Arg.Any<int>(), Arg.Any<uint>());
   }
 
   /// <summary>

@@ -38,15 +38,18 @@ public class ClientTests
     string log = "log";
 
     ServerNode leaderServer = new();
+    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
+
+    Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
     Utils.WaitForElectionTimerToRunOut();
     await leaderServer.AppendLogRPCAsync(log, 0);
+    Utils.WaitForHeartbeatTimerToRunOut();
 
     // Then
-    // leaderServer.LogMessages.Count().Should().Be(1);
-    // leaderServer.LogMessages.First().Should().Be(log);
-    Assert.Fail();
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(arg => arg.Log == log && arg.LogIndex == 1));
   }
 
   /// <summary>

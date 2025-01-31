@@ -11,7 +11,7 @@ public static class Utils
 
   public static void WaitForElectionTimerToRunOut()
   {
-    Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME + GENERAL_BUFFER_TIME);
+    Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_INTERVAL + GENERAL_BUFFER_TIME);
   }
 
   public static void WaitForHeartbeatTimerToRunOut()

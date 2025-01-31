@@ -81,7 +81,7 @@ public class ElectionHandler
   {
     _serverData.SetState(ServerNodeState.LEADER);
     _clusterHandler.ClusterLeaderId = _serverData.Id;
-    _electionData.ElectionTimer.Stop();
+    _electionData.ElectionTimer.Close();
 
     await _clusterHandler.SetFollowersNextIndexToAsync();
     _clusterHandler.StartSendingHeartbeatsToEachOtherServer();
@@ -91,7 +91,7 @@ public class ElectionHandler
   {
     _serverData.StateBeforePause = _serverData.State;
     _serverData.SetState(ServerNodeState.DOWN);
-    _electionData.ElectionTimer.Stop();
+    _electionData.ElectionTimer.Close();
     _clusterHandler.StopAllHeartBeatThreads();
     await Task.CompletedTask;
   }
@@ -107,12 +107,12 @@ public class ElectionHandler
       return;
     }
 
-    _electionData.ElectionTimer.Start();
+    _electionData.ElectionTimer = Util.NewElectionTimer(_electionData.ElectionTimer.Interval);
   }
 
   public void RestartElectionTimeout()
   {
-    _electionData.ElectionTimer.Stop();
-    _electionData.ElectionTimer.Start();
+    _electionData.ElectionTimer.Close();
+    _electionData.ElectionTimer = Util.NewElectionTimer(_electionData.ElectionTimer.Interval);
   }
 }

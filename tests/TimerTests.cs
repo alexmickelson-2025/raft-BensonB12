@@ -25,7 +25,7 @@ public class ElectionTimerTests
     // Then
     foreach (ElectionData timerObj in electionTimerObjects)
     {
-      timerObj.ElectionTimer.Interval.Should().BeInRange(Constants.INCLUSIVE_MINIMUM_ELECTION_TIME, Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME - 1);
+      timerObj.ElectionTimer.Interval.Should().BeInRange(Constants.INCLUSIVE_MINIMUM_ELECTION_INTERVAL, Constants.EXCLUSIVE_MAXIMUM_ELECTION_INTERVAL - 1);
     }
   }
 
@@ -61,7 +61,7 @@ public class ElectionTimerTests
     uint firstTerm = server.Term;
 
     // When
-    Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+    Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_INTERVAL);
 
     // Then
     server.Term.Should().BeGreaterThan(firstTerm);
@@ -74,7 +74,7 @@ public class ElectionTimerTests
   public async Task WhenAFollowerReceivesAnAppendEntriesMessageOrHeartbeatItResetsTheElectionTimer()
   {
     // Given
-    int waitTime = Constants.INCLUSIVE_MINIMUM_ELECTION_TIME - Utils.GENERAL_BUFFER_TIME;
+    int waitTime = Constants.INCLUSIVE_MINIMUM_ELECTION_INTERVAL - Utils.GENERAL_BUFFER_TIME;
     int leaderId = 1;
 
     IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
@@ -86,7 +86,7 @@ public class ElectionTimerTests
     }
 
     // When
-    for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME / waitTime) + 1; i++)
+    for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_INTERVAL / waitTime) + 1; i++)
     {
       Thread.Sleep(waitTime);
       await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, followerServer.Term + 1));

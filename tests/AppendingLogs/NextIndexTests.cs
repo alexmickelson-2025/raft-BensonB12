@@ -2,6 +2,7 @@ using FluentAssertions;
 using NSubstitute;
 using Logic.Models.Server;
 using Logic.Models.Args;
+using Logic.Models.Server.Logging;
 namespace Tests.AppendingLogs;
 
 public class LogTests
@@ -13,11 +14,10 @@ public class LogTests
   public void WhenAServerIsNewItsLogIsEmpty()
   {
     // Given
-    ServerNode leaderServer = new();
+    LogHandler logHandler = new([]);
 
     // When & Then
-    // leaderServer.LogMessages.Should().BeEmpty();
-    Assert.Fail();
+    logHandler.Messages.Should().BeEmpty();
   }
 
   /// <summary>
@@ -27,14 +27,10 @@ public class LogTests
   public void WhenALeaderWinsAnElectionItInitializesTheNextIndexCorrectly()
   {
     // Given
-    ServerNode leaderServer = new();
+    LogHandler logHandler = new([0, 1, 2]);
 
-    // When
-    Utils.WaitForElectionTimerToRunOut();
-
-    // Then
-    // leaderServer.LogMessages.NextIndex.Should().Be(0);
-    Assert.Fail();
+    // When & Then
+    logHandler.NextIndex.Should().Be(0);
   }
 
   /// <summary>
@@ -64,20 +60,10 @@ public class LogTests
   public void LeaderMaintainsNextIndexForEachFollower()
   {
     // Given
-    int followerId = 1;
+    LogHandler logHandler = new([0, 1, 2]);
 
-    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(followerId);
-    ServerNode leaderServer = new();
-
-    Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-    leaderServer.InitializeClusterWithServers([followerServer]);
-
-    // When
-    Utils.WaitForElectionTimerToRunOut();
-
-    // Then
-    // leaderServer.FollowerToNextIndex[followerId].Should().Be(0);
-    Assert.Fail();
+    // When & Then
+    logHandler.FollowerToNextIndex.Keys.Count.Should().Be(3);
   }
 
   /// <summary>
