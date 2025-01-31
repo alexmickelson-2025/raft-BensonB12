@@ -28,11 +28,11 @@ public class ClientNode : IClientNode
 
     if (_leaderNode is not null)
     {
-      await _leaderNode.AppendLogRPCAsync(log, _id);
+      await _leaderNode.RPCFromClientAsync(new Args.RPCFromClientArgs(_id, log));
     }
 
     int randomServerIndex = Random.Shared.Next(_serverNodes.Count());
-    await _serverNodes[randomServerIndex].AppendLogRPCAsync(log, _id);
+    await _serverNodes[randomServerIndex].RPCFromClientAsync(new Args.RPCFromClientArgs(_id, log);
 
     Thread.Sleep(Constants.CLUSTER_WAITS_FOR_RESPONSE_INTERVAL);
 

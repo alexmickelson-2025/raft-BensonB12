@@ -86,7 +86,7 @@ public class ServerNode : IServerNode
     await _clusterHandler.RPCFromFollowerAsync(id, rejected);
   }
 
-  public async Task AppendLogRPCAsync(string log, int clientId)
+  async Task appendLogRPCAsync(string log, int clientId)
   {
     if (_serverData.ServerIsDown())
     {
@@ -133,7 +133,7 @@ public class ServerNode : IServerNode
 
     if (args.Log is not null)
     {
-      await AppendLogRPCAsync(args.Log, args.ClientId);
+      await appendLogRPCAsync(args.Log, args.ClientId);
     }
 
     if (args.ServerShouldBePaused == true)

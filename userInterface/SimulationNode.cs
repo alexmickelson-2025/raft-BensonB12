@@ -42,11 +42,6 @@ public class SimulationNode : IServerNode
     return _innerServerNode.RPCFromFollowerAsync(id, rejected);
   }
 
-  public Task AppendLogRPCAsync(string log, int client_id)
-  {
-    return _innerServerNode.AppendLogRPCAsync(log, client_id);
-  }
-
   public Task RPCFromClientAsync(RPCFromClientArgs args)
   {
     return _innerServerNode.RPCFromClientAsync(args);

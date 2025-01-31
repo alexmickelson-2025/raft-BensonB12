@@ -52,7 +52,7 @@ public class HeartbeatTests
 
     // When
     await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1, 0, 0, 0));
-    await followerServer.AppendLogRPCAsync("", clientId);
+    await followerServer.RPCFromClientAsync(new RPCFromClientArgs(clientId, ""));
 
     // Then
     await clientNode.Received().ResponseFromServerAsync(false, leaderId);

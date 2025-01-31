@@ -13,7 +13,6 @@ public interface IServerNode
   Task CountVoteAsync(bool inSupport);
   Task RegisterVoteForAsync(int id, uint term);
   Task RPCFromFollowerAsync(int id, bool applied);
-  Task AppendLogRPCAsync(string log, int clientId);
 }
 
 // RPCFromClient

@@ -22,7 +22,7 @@ public class ClientTests
 
     // When
     Utils.WaitForElectionTimerToRunOut();
-    await leaderServer.AppendLogRPCAsync(log, 0);
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, log)); ;
 
     // Then
     await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogIndex == 0));
@@ -45,7 +45,7 @@ public class ClientTests
 
     // When
     Utils.WaitForElectionTimerToRunOut();
-    await leaderServer.AppendLogRPCAsync(log, 0);
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, log)); ;
     Utils.WaitForHeartbeatTimerToRunOut();
 
     // Then

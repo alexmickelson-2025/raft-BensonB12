@@ -81,7 +81,7 @@ public class LogTests
 
     // When
     Utils.WaitForElectionTimerToRunOut();
-    await leaderServer.AppendLogRPCAsync("log", 0);
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, "log")); ;
 
     // Then
     await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.LeadersLastCommitIndex == 0)); // It will be a list of logs eventually
