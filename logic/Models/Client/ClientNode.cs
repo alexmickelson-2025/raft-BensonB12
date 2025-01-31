@@ -6,7 +6,7 @@ namespace Logic.Models.Client;
 
 public class ClientNode : IClientNode
 {
-  IEnumerable<IServerNode> _serverNodes;
+  List<IServerNode> _serverNodes = [];
   IServerNode? _leaderNode;
   bool _committedLog = false;
   int _id;
@@ -15,22 +15,26 @@ public class ClientNode : IClientNode
   public ClientNode(IEnumerable<IServerNode> serverNodes, int? id = null)
   {
     _id = id ?? Util.GenerateId();
-    _serverNodes = serverNodes;
+    _serverNodes.AddRange(serverNodes);
   }
   public async Task SendLogToClusterAsync(string log)
   {
+    if (_serverNodes.Count < 0)
+    {
+      throw new ClusterIsEmptyException();
+    }
+
     _committedLog = false;
 
     if (_leaderNode is not null)
     {
       await _leaderNode.AppendLogRPCAsync(log, _id);
     }
-    else
-    {
-      await _serverNodes.First().AppendLogRPCAsync(log, _id);
-    }
 
-    Thread.Sleep(Constants.HEARTBEAT_PAUSE);
+    int randomServerIndex = Random.Shared.Next(_serverNodes.Count());
+    await _serverNodes[randomServerIndex].AppendLogRPCAsync(log, _id);
+
+    Thread.Sleep(Constants.CLUSTER_WAITS_FOR_RESPONSE_INTERVAL);
 
     if (!_committedLog)
     {
@@ -52,6 +56,13 @@ public class ClientNode : IClientNode
     }
 
     IServerNode newLeader = _serverNodes.SingleOrDefault(node => node.Id == leaderId) ?? throw new ClusterDidNotContainServerException(leaderId);
+
+    if (newLeader is not null)
+    {
+      throw new ClusterDidNotContainServerException(leaderId);
+    }
+
+    _leaderNode = newLeader;
     await Task.CompletedTask;
   }
 }
