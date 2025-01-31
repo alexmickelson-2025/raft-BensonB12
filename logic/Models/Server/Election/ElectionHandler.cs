@@ -6,7 +6,7 @@ namespace Logic.Models.Server.Election;
 
 public class ElectionHandler
 {
-  ElectionData _electionData = new();
+  ElectionData _electionData;
   ServerData _serverData;
   ClusterHandler _clusterHandler;
   public bool TheElectionIsStillGoing => !_electionData.ElectionCancellationFlag;
@@ -15,6 +15,7 @@ public class ElectionHandler
   {
     _serverData = serverData;
     _clusterHandler = clusterHandler;
+    _electionData = new ElectionData(initiateElection);
   }
 
   public void StopPreviousElection()

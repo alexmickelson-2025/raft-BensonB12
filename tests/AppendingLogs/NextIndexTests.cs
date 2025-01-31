@@ -84,6 +84,6 @@ public class LogTests
     await leaderServer.AppendLogRPCAsync("log", 0);
 
     // Then
-    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogTerm == 1)); // It will be a list of logs eventually
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.LeadersLastCommitIndex == 0)); // It will be a list of logs eventually
   }
 }

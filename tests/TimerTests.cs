@@ -1,3 +1,4 @@
+using System.Timers;
 using FluentAssertions;
 using Logic.Models.Args;
 using Logic.Models.Server;
@@ -8,6 +9,8 @@ namespace Tests;
 
 public class ElectionTimerTests
 {
+  static Task _dummyElectionHandler(object? obj, ElapsedEventArgs elapsedEventArgs) => Task.CompletedTask;
+
   /// <summary>
   /// Testing #5
   /// </summary>
@@ -19,7 +22,7 @@ public class ElectionTimerTests
 
     for (int i = 0; i < 10; i++)
     {
-      electionTimerObjects.Add(new());
+      electionTimerObjects.Add(new(_dummyElectionHandler));
     }
 
     // Then
@@ -40,7 +43,7 @@ public class ElectionTimerTests
 
     for (int i = 0; i < 10; i++)
     {
-      electionTimerObjects.Add(new());
+      electionTimerObjects.Add(new(_dummyElectionHandler));
     }
 
     IEnumerable<IGrouping<double, ElectionData>> intervalsSet = electionTimerObjects.GroupBy(obj => obj.ElectionTimer.Interval);

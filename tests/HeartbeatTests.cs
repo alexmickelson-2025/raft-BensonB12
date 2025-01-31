@@ -93,7 +93,6 @@ public class HeartbeatTests
     IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
 
     Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
-
     leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When

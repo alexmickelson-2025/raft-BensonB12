@@ -7,6 +7,11 @@ public class ElectionData
   public System.Timers.Timer ElectionTimer { get; set; } = Util.NewElectionTimer();
   public bool ElectionCancellationFlag { get; set; } = false;
 
+  public ElectionData(InitiateElection initiateElection)
+  {
+    NewElectionTimer(initiateElection);
+  }
+
   public void NewElectionTimer(InitiateElection initiateElection, double? interval = null)
   {
     double randomInterval = interval ?? Random.Shared.Next(Constants.INCLUSIVE_MINIMUM_ELECTION_INTERVAL, Constants.EXCLUSIVE_MAXIMUM_ELECTION_INTERVAL);
@@ -24,7 +29,4 @@ public class ElectionData
   {
     ElectionTimer.Elapsed += async (sender, e) => await initiateElection(sender, e);
   }
-
-
-
 }
