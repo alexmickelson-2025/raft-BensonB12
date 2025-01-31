@@ -39,7 +39,7 @@ public class CandidateTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    await otherServer.DidNotReceiveWithAnyArgs().RegisterVoteForAsync(Arg.Any<int>(), Arg.Any<uint>());
+    await otherServer.DidNotReceiveWithAnyArgs().RPCFromCandidateAsync(Arg.Any<RPCFromCandidateArgs>());
   }
 
   /// <summary>
@@ -73,7 +73,7 @@ public class CandidateTests
 
     // When
     await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
-    await server.RegisterVoteForAsync(candidateId, server.Term + 1);
+    await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(candidateId, server.Term + 1));
     Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
 
     // Then
@@ -94,7 +94,7 @@ public class CandidateTests
 
     // When
     await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
-    await server.RegisterVoteForAsync(otherServerId, server.Term + 1);
+    await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(otherServer.Id, server.Term + 1));
 
     // Then
     await otherServer.DidNotReceiveWithAnyArgs().CountVoteAsync(Arg.Any<bool>());

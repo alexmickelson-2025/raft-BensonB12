@@ -8,14 +8,14 @@ public interface IServerNode
   ServerNodeState State { get; }
   uint Term { get; }
   void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers);
-  Task RPCFromLeaderAsync(RPCFromLeaderArgs args);
-  Task RPCFromClientAsync(RPCFromClientArgs args);
+  Task RPCFromLeaderAsync(RPCFromLeaderArgs args); // Heartbeat, Log / catchup Log
+  Task RPCFromClientAsync(RPCFromClientArgs args); // Pause, Unpause, Log
   Task CountVoteAsync(bool inSupport);
-  Task RegisterVoteForAsync(int id, uint term);
+  Task RPCFromCandidateAsync(RPCFromCandidateArgs args);
   Task RPCFromFollowerAsync(int id, bool applied);
 }
 
-// RPCFromClient
+// RPCFromClient *DONE*
 // // Pause
 // // Unpause
 // // Log

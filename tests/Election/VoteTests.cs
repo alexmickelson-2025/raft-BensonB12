@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NSubstitute;
 using Logic.Models.Server;
+using Logic.Models.Args;
 
 namespace Tests.Election;
 
@@ -41,7 +42,7 @@ public class VoteTests
     ServerNode server = new([leaderServer]);
 
     // When
-    await server.RegisterVoteForAsync(leaderId, server.Term + 1);
+    await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(leaderId, server.Term + 1));
 
     // Then
     await leaderServer.Received().CountVoteAsync(true);
@@ -80,8 +81,8 @@ public class VoteTests
     ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
     // When
-    await server.RegisterVoteForAsync(candidateOneId, term);
-    await server.RegisterVoteForAsync(candidateTwoId, term);
+    await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(candidateOneId, term));
+    await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(candidateTwoId, term));
 
     // Then
     await candidateServerTwo.Received().CountVoteAsync(false);
@@ -103,8 +104,8 @@ public class VoteTests
     ServerNode server = new([candidateServerOne, candidateServerTwo]);
 
     // When
-    await server.RegisterVoteForAsync(candidateOneId, term);
-    await server.RegisterVoteForAsync(candidateTwoId, term + 1);
+    await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(candidateOneId, term));
+    await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(candidateTwoId, term + 1));
 
     // Then
     await candidateServerTwo.Received().CountVoteAsync(true);

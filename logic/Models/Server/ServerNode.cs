@@ -34,9 +34,9 @@ public class ServerNode : IServerNode
     _electionHandler = new ElectionHandler(_serverData, _clusterHandler);
   }
 
-  public async Task RegisterVoteForAsync(int id, uint term)
+  public async Task RPCFromCandidateAsync(RPCFromCandidateArgs args)
   {
-    await _clusterHandler.RegisterVoteForAsync(id, term);
+    await _clusterHandler.RegisterVoteForAsync(args.CandidateId, args.Term);
   }
 
   public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote, the servers are restricted to only vote once per term. Maybe I should take the term then?

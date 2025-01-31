@@ -18,7 +18,14 @@ public class OutGoingCallsClusterHandler
     // TODO: Fix using a lock
     for (int i = 0; i < _clusterData.OtherServersInCluster.Count; i++)
     {
-      await _clusterData.OtherServersInCluster[i].RegisterVoteForAsync(_clusterData.ServerData.Id, _clusterData.ServerData.Term);
+      await _clusterData.OtherServersInCluster[i].RPCFromCandidateAsync(
+        new RPCFromCandidateArgs(
+          candidateId: _clusterData.ServerData.Id,
+          term: _clusterData.ServerData.Term,
+          candidateLatestCommittedLogIndex: _clusterData.LogHandler.PreviousLogIndex,
+          candidateLatestCommittedLogTerm: _clusterData.LogHandler.PreviousLogTerm
+        )
+      );
     }
   }
 

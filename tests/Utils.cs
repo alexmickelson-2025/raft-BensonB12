@@ -1,3 +1,4 @@
+using Logic.Models.Args;
 using Logic.Models.Client;
 using Logic.Models.Server;
 using Logic.Utils;
@@ -38,7 +39,7 @@ public static class Utils
     foreach (IServerNode followerServer in followerServers)
     {
       followerServer
-        .WhenForAnyArgs(server => server.RegisterVoteForAsync(Arg.Any<int>(), Arg.Any<uint>()))
+        .WhenForAnyArgs(server => server.RPCFromCandidateAsync(Arg.Any<RPCFromCandidateArgs>()))
               .Do(async _ =>
               {
                 await leaderServer.CountVoteAsync(true);

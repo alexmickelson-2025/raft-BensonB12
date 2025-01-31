@@ -32,9 +32,9 @@ public class SimulationNode : IServerNode
     return _innerServerNode.CountVoteAsync(inSupport);
   }
 
-  public Task RegisterVoteForAsync(int id, uint term)
+  public Task RPCFromCandidateAsync(RPCFromCandidateArgs args)
   {
-    return _innerServerNode.RegisterVoteForAsync(id, term);
+    return _innerServerNode.RPCFromCandidateAsync(args);
   }
 
   public Task RPCFromFollowerAsync(int id, bool rejected)
