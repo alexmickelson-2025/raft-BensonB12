@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using Logic.Models.Args;
+using Logic.Models.Client;
 using Logic.Models.Server;
 using Logic.Utils;
 using NSubstitute;
@@ -71,12 +73,25 @@ public class ClientTests
   /// Testing Logs #18
   /// </summary>
   [Fact]
-  public void IfALeaderCannotCommitAnEntryIDoesNotSendAResponseToTheClient()
+  public async Task IfALeaderCannotCommitAnEntryIDoesNotSendAResponseToTheClient()
   {
     // Given
+    int clientId = 0;
+
+    IServerNode followerOne = Utils.CreateIServerNodeSubstituteWithId(1);
+    IServerNode followerTwo = Utils.CreateIServerNodeSubstituteWithId(2);
+    IClientNode client = Utils.CreateIClientNodeSubstituteWithId(clientId);
+    ServerNode leaderServer = new(clients: [client]);
+
+    Utils.ServersVoteForLeaderWhenAsked([followerOne, followerTwo], leaderServer);
+    leaderServer.InitializeClusterWithServers([followerOne, followerTwo]);
 
     // When
+    Utils.WaitForElectionTimerToRunOut();
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(clientId, "log"));
+
 
     // Then
+    await client.DidNotReceiveWithAnyArgs().ResponseFromServerAsync(Arg.Any<bool>(), Arg.Any<int>());
   }
 }

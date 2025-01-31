@@ -17,6 +17,7 @@ public class ClientNode : IClientNode
     _id = id ?? Util.GenerateId();
     _serverNodes.AddRange(serverNodes);
   }
+
   public async Task SendLogToClusterAsync(string log)
   {
     if (_serverNodes.Count < 0)
@@ -36,10 +37,10 @@ public class ClientNode : IClientNode
 
     Thread.Sleep(Constants.CLUSTER_WAITS_FOR_RESPONSE_INTERVAL);
 
-    if (!_committedLog)
-    {
-      await SendLogToClusterAsync(log);
-    }
+    // if (!_committedLog)
+    // {
+    //   await SendLogToClusterAsync(log);
+    // }
   }
 
   public async Task ResponseFromServerAsync(bool committed, int? leaderId = null)
