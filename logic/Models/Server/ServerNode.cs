@@ -32,7 +32,6 @@ public class ServerNode : IServerNode
 
     _clusterHandler = new ClusterHandler(otherServers, _serverData);
     _electionHandler = new ElectionHandler(_serverData, _clusterHandler);
-    _electionHandler.AddElectionTimeOutProcedureEventToElectionTimer();
   }
 
   public async Task RegisterVoteForAsync(int id, uint term)

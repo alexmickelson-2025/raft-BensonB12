@@ -27,11 +27,6 @@ public class ElectionHandler
     _electionData.ElectionCancellationFlag = false;
   }
 
-  public void AddElectionTimeOutProcedureEventToElectionTimer()
-  {
-    _electionData.ElectionTimer.Elapsed += async (sender, e) => await initiateElection(sender, e);
-  }
-
   async Task initiateElection(object? _, ElapsedEventArgs __)
   {
     if (_serverData.ServerIsACandidate())
@@ -46,7 +41,7 @@ public class ElectionHandler
     _serverData.Term++;
     _serverData.HasVotedInTerm[_serverData.Term] = true; // TODO: add to to make sure it does not vote for others
     discardOldVotes();
-    RestartElectionTimerWithNewInterval();
+    _electionData.NewElectionTimer(initiateElection);
 
     await runElection();
   }
@@ -55,12 +50,6 @@ public class ElectionHandler
   {
     _serverData.VotesInFavorForServer = 1;
     _serverData.VotesNotInFavorForServer = 0;
-  }
-
-  public void RestartElectionTimerWithNewInterval()
-  {
-    _electionData.ElectionTimer = Util.NewElectionTimer();
-    AddElectionTimeOutProcedureEventToElectionTimer();
   }
 
   async Task runElection()
@@ -107,12 +96,17 @@ public class ElectionHandler
       return;
     }
 
-    _electionData.ElectionTimer = Util.NewElectionTimer(_electionData.ElectionTimer.Interval);
+    _electionData.NewElectionTimer(initiateElection, _electionData.ElectionTimer.Interval);
   }
 
   public void RestartElectionTimeout()
   {
     _electionData.ElectionTimer.Close();
-    _electionData.ElectionTimer = Util.NewElectionTimer(_electionData.ElectionTimer.Interval);
+    _electionData.NewElectionTimer(initiateElection, _electionData.ElectionTimer.Interval);
+  }
+
+  public void RestartElectionTimerWithNewInterval()
+  {
+    _electionData.NewElectionTimer(initiateElection);
   }
 }
