@@ -6,9 +6,10 @@ public class Logs : IEnumerable<LogData>
 {
   List<LogData> _logs = [];
   public int NextIndex => _logs.Count;
-  public void Add(uint term, string log)
+  public uint PreviousLogTerm => _logs.Last().Term;
+  public void Add(uint term, string log, int index)
   {
-    _logs.Add(new LogData(term, log));
+    _logs.Add(new LogData(term, log, index));
   }
 
   public LogData this[int index]

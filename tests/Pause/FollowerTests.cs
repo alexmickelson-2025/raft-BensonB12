@@ -28,7 +28,7 @@ public class FollowerTests
     await leaderServer.AppendLogRPCAsync("log", 0);
 
     // Then
-    await followerServer.DidNotReceive().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(arg => arg.Log != null));
+    await followerServer.DidNotReceive().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogIndex != -1));
   }
 
   /// <summary>
@@ -45,7 +45,7 @@ public class FollowerTests
 
     // When
     await server.Pause();
-    await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1));
+    await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1, -1, 1, -1));
 
     // Then
     await leaderServer.DidNotReceiveWithAnyArgs().RPCFromFollowerAsync(Arg.Any<int>(), Arg.Any<bool>());

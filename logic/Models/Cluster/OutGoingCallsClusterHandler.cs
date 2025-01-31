@@ -63,7 +63,15 @@ public class OutGoingCallsClusterHandler
 
   async Task sendHeartbeatToServerAsync(IServerNode server)
   {
-    RPCFromLeaderArgs heartbeatArgs = new(_clusterData.ServerData.Id, _clusterData.ServerData.Term);
+    // NOT RIGHT NEED TO FIX TODO
+    RPCFromLeaderArgs heartbeatArgs = new(
+      leaderId: _clusterData.ServerData.Id,
+          term: _clusterData.ServerData.Term,
+          previousLogIndex: _clusterData.ServerData.NextIndex,
+          previousLogTerm: _clusterData.ServerData.Term,
+          leadersLastCommitIndex: _clusterData.ServerData.NextIndex,
+          newLogs: []
+    );
 
     await server.RPCFromLeaderAsync(heartbeatArgs);
   }
@@ -94,14 +102,34 @@ public class OutGoingCallsClusterHandler
     // Probably a lock if I where to guess
     foreach (IServerNode server in _clusterData.OtherServersInCluster)
     {
-      await server.SetNextIndexToAsync(new SetNextIndexToArgs(_clusterData.ServerData.Id, _clusterData.ServerData.Term, nextIndex));
+      // NOT RIGHT NEED TO FIX TODO
+      await server.RPCFromLeaderAsync(
+        new RPCFromLeaderArgs(
+          leaderId: _clusterData.ServerData.Id,
+          term: _clusterData.ServerData.Term,
+          previousLogIndex: _clusterData.ServerData.NextIndex,
+          previousLogTerm: _clusterData.ServerData.Term,
+          leadersLastCommitIndex: _clusterData.ServerData.NextIndex,
+          newLogs: []
+        )
+      );
+
+      //await server.SetNextIndexToAsync(new SetNextIndexToArgs(_clusterData.ServerData.Id, _clusterData.ServerData.Term, nextIndex));
       // If any respond with a rejection, I need to handle that soon
     }
   }
 
   public async Task SendRPCFromLeaderToEachFollowerAsync(string log)
   {
-    RPCFromLeaderArgs rpcFromLeaderArgs = new(_clusterData.ServerData.Id, _clusterData.ServerData.Term, log, _clusterData.ServerData.NextIndex);
+    // NOT RIGHT NEED TO FIX TODO
+    RPCFromLeaderArgs rpcFromLeaderArgs = new(
+          leaderId: _clusterData.ServerData.Id,
+          term: _clusterData.ServerData.Term,
+          previousLogIndex: _clusterData.LogHandler.PreviousLogIndex,
+          previousLogTerm: _clusterData.LogHandler.PreviousLogTerm,
+          leadersLastCommitIndex: _clusterData.ServerData.NextIndex,
+          newLogs: []
+      );
 
     foreach (IServerNode server in _clusterData.OtherServersInCluster)
     {

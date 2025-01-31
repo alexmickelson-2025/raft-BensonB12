@@ -89,7 +89,7 @@ public class ElectionTimerTests
     for (int i = 0; i < (Constants.EXCLUSIVE_MAXIMUM_ELECTION_INTERVAL / waitTime) + 1; i++)
     {
       Thread.Sleep(waitTime);
-      await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, followerServer.Term + 1));
+      await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, followerServer.Term + 1, 0, 0, 0));
     }
 
     // Then

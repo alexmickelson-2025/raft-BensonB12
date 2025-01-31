@@ -52,13 +52,8 @@ public class SimulationNode : IServerNode
     await _innerServerNode.Unpause();
   }
 
-  public Task SetNextIndexToAsync(SetNextIndexToArgs args)
+  public Task AppendLogRPCAsync(string log, int client_id)
   {
-    return _innerServerNode.SetNextIndexToAsync(args);
-  }
-
-  public Task AppendLogRPCAsync(string log)
-  {
-    return _innerServerNode.AppendLogRPCAsync(log);
+    return _innerServerNode.AppendLogRPCAsync(log, client_id);
   }
 }

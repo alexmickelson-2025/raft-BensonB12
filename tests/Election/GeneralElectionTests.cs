@@ -59,7 +59,7 @@ public class ElectionTests
             // Do I do something here?
         }
 
-        await candidateServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, candidateServer.Term));
+        await candidateServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, candidateServer.Term, 0, 0, 0));
 
         // Then
         candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);
@@ -99,7 +99,7 @@ public class ElectionTests
 
         // When
         Utils.WaitForElectionTimerToRunOut();
-        await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 0));
+        await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 0, 0, 0, 0));
 
         // Then
         await leaderServer.Received().RPCFromFollowerAsync(server.Id, false);

@@ -1,23 +1,23 @@
+using Logic.Models.Server.Logging;
+
 namespace Logic.Models.Args;
 
 public class RPCFromLeaderArgs
 {
   public uint Term { get; }
-  public int ServerId { get; }
-  public string? Log { get; }
-  public int? LogIndex { get; }
+  public int LeaderId { get; }
+  public int PreviousLogIndex { get; }
+  public uint PreviousLogTerm { get; }
+  public int LeadersLastCommitIndex { get; }
+  public List<LogData> NewLogs { get; }
 
-  public RPCFromLeaderArgs(int serverId, uint term)
+  public RPCFromLeaderArgs(int leaderId, uint term, int previousLogIndex, uint previousLogTerm, int leadersLastCommitIndex, List<LogData>? newLogs = null)
   {
-    ServerId = serverId;
+    LeaderId = leaderId;
     Term = term;
-  }
-
-  public RPCFromLeaderArgs(int serverId, uint term, string log, int logIndex)
-  {
-    ServerId = serverId;
-    Term = term;
-    Log = log;
-    LogIndex = logIndex;
+    PreviousLogIndex = previousLogIndex;
+    PreviousLogTerm = previousLogTerm;
+    LeadersLastCommitIndex = leadersLastCommitIndex;
+    NewLogs = newLogs ?? [];
   }
 }

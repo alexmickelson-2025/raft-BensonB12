@@ -53,7 +53,7 @@ public class ServerData
 
   public void AddToLocalMemory(uint term, string log)
   {
-    _logs.Add(term, log);
+    _logs.Add(term, log, NextIndex);
   }
 
   public void SetNextIndexTo(int nextIndex)

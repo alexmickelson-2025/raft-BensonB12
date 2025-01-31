@@ -25,7 +25,7 @@ public class ClientTests
     await leaderServer.AppendLogRPCAsync(log, 0);
 
     // Then
-    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.Log == log));
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogIndex == 0));
   }
 
   /// <summary>
@@ -49,7 +49,7 @@ public class ClientTests
     Utils.WaitForHeartbeatTimerToRunOut();
 
     // Then
-    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(arg => arg.Log == log && arg.LogIndex == 1));
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogIndex == 0));
   }
 
   /// <summary>

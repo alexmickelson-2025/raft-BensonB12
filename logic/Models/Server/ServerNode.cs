@@ -52,7 +52,7 @@ public class ServerNode : IServerNode
       return;
     }
 
-    IServerNode leaderServer = _clusterHandler.GetServer(args.ServerId);
+    IServerNode leaderServer = _clusterHandler.GetServer(args.LeaderId);
 
     if (args.Term < _serverData.Term)
     {
@@ -62,7 +62,7 @@ public class ServerNode : IServerNode
 
     // If the term is the same, we have some corner cases to solve
 
-    _clusterHandler.ClusterLeaderId = args.ServerId;
+    _clusterHandler.ClusterLeaderId = args.LeaderId;
     _electionHandler.RestartElectionTimeout();
 
     ServerNodeState oldState = _serverData.State;
@@ -129,11 +129,5 @@ public class ServerNode : IServerNode
   void appendLog(uint term, string log)
   {
     _serverData.AddToLocalMemory(term, log);
-  }
-
-  public async Task SetNextIndexToAsync(SetNextIndexToArgs args)
-  {
-    await Task.CompletedTask;
-    _serverData.SetNextIndexTo(args.NextIndex);
   }
 }

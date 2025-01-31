@@ -51,7 +51,7 @@ public class HeartbeatTests
     ServerNode followerServer = new([leaderServer], clients: [clientNode]);
 
     // When
-    await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1));
+    await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1, 0, 0, 0));
     await followerServer.AppendLogRPCAsync("", clientId);
 
     // Then
@@ -76,7 +76,7 @@ public class HeartbeatTests
       // Do I do something here?
     }
 
-    await candidateServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, candidateServer.Term + 1));
+    await candidateServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, candidateServer.Term + 1, -1, 0, -1));
 
     // Then
     candidateServer.State.Should().Be(ServerNodeState.FOLLOWER);

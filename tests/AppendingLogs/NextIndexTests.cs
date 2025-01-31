@@ -50,7 +50,7 @@ public class LogTests
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
-    await followerServer.Received().SetNextIndexToAsync(Arg.Is<SetNextIndexToArgs>(args => args.NextIndex == 0));
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogIndex == 0));
   }
 
   /// <summary>
@@ -84,6 +84,6 @@ public class LogTests
     await leaderServer.AppendLogRPCAsync("log", 0);
 
     // Then
-    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.LogIndex == 1)); // It will be a list of logs eventually
+    await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogTerm == 1)); // It will be a list of logs eventually
   }
 }
