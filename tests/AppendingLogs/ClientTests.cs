@@ -1,5 +1,6 @@
 using Logic.Models.Args;
 using Logic.Models.Server;
+using Logic.Utils;
 using NSubstitute;
 namespace Tests.AppendingLogs;
 
@@ -22,7 +23,8 @@ public class ClientTests
 
     // When
     Utils.WaitForElectionTimerToRunOut();
-    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, log)); ;
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, log));
+    Utils.WaitForHeartbeatTimerToRunOut();
 
     // Then
     await followerServer.Received().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(args => args.PreviousLogIndex == 0));

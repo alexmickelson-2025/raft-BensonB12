@@ -77,7 +77,7 @@ public class CandidateTests
     Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
 
     // Then
-    await candidateServer.DidNotReceiveWithAnyArgs().CountVoteAsync(Arg.Any<bool>());
+    await candidateServer.DidNotReceiveWithAnyArgs().RPCFromFollowerAsync(Arg.Any<RPCFromFollowerArgs>());
   }
 
   /// <summary>
@@ -97,6 +97,6 @@ public class CandidateTests
     await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(otherServer.Id, server.Term + 1));
 
     // Then
-    await otherServer.DidNotReceiveWithAnyArgs().CountVoteAsync(Arg.Any<bool>());
+    await otherServer.DidNotReceiveWithAnyArgs().RPCFromFollowerAsync(Arg.Any<RPCFromFollowerArgs>());
   }
 }

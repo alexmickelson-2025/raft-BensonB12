@@ -31,7 +31,7 @@ public class IncomingCallsClusterHandler
   {
     IServerNode candidate = _clusterData.GetServer(id);
 
-    await candidate.CountVoteAsync(inFavor);
+    await candidate.RPCFromFollowerAsync(new Args.RPCFromFollowerArgs(_clusterData.ServerData.Id, _clusterData.ServerData.Term, inFavor));
     _clusterData.ServerData.HasVotedInTerm[newTerm] = true;
   }
 

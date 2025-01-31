@@ -27,19 +27,14 @@ public class SimulationNode : IServerNode
     return _innerServerNode.RPCFromLeaderAsync(args);
   }
 
-  public Task CountVoteAsync(bool inSupport)
-  {
-    return _innerServerNode.CountVoteAsync(inSupport);
-  }
-
   public Task RPCFromCandidateAsync(RPCFromCandidateArgs args)
   {
     return _innerServerNode.RPCFromCandidateAsync(args);
   }
 
-  public Task RPCFromFollowerAsync(int id, bool rejected)
+  public Task RPCFromFollowerAsync(RPCFromFollowerArgs args)
   {
-    return _innerServerNode.RPCFromFollowerAsync(id, rejected);
+    return _innerServerNode.RPCFromFollowerAsync(args);
   }
 
   public Task RPCFromClientAsync(RPCFromClientArgs args)

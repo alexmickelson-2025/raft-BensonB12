@@ -25,7 +25,7 @@ public class FollowerTests
     Utils.WaitForElectionTimerToRunOut();
     await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     followerServer.ClearReceivedCalls();
-    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, "log"));;
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, "log")); ;
 
     // Then
     await followerServer.DidNotReceive().RPCFromLeaderAsync(Arg.Any<RPCFromLeaderArgs>());
@@ -48,7 +48,7 @@ public class FollowerTests
     await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1, -1, 1, -1));
 
     // Then
-    await leaderServer.DidNotReceiveWithAnyArgs().RPCFromFollowerAsync(Arg.Any<int>(), Arg.Any<bool>());
+    await leaderServer.DidNotReceiveWithAnyArgs().RPCFromFollowerAsync(Arg.Any<RPCFromFollowerArgs>());
   }
 
   /// <summary>

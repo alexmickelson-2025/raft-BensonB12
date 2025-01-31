@@ -45,7 +45,7 @@ public class VoteTests
     await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(leaderId, server.Term + 1));
 
     // Then
-    await leaderServer.Received().CountVoteAsync(true);
+    await leaderServer.Received().RPCFromFollowerAsync(Arg.Is<RPCFromFollowerArgs>(args => args.WasSuccess));
   }
 
   /// <summary>
@@ -85,7 +85,7 @@ public class VoteTests
     await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(candidateTwoId, term));
 
     // Then
-    await candidateServerTwo.Received().CountVoteAsync(false);
+    await candidateServerTwo.Received().RPCFromFollowerAsync(Arg.Is<RPCFromFollowerArgs>(args => !args.WasSuccess));
   }
 
   /// <summary>
@@ -108,6 +108,6 @@ public class VoteTests
     await server.RPCFromCandidateAsync(new RPCFromCandidateArgs(candidateTwoId, term + 1));
 
     // Then
-    await candidateServerTwo.Received().CountVoteAsync(true);
+    await candidateServerTwo.Received().RPCFromFollowerAsync(Arg.Is<RPCFromFollowerArgs>(args => args.WasSuccess));
   }
 }

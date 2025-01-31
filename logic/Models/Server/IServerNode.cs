@@ -10,9 +10,8 @@ public interface IServerNode
   void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers);
   Task RPCFromLeaderAsync(RPCFromLeaderArgs args); // Heartbeat, Log / catchup Log
   Task RPCFromClientAsync(RPCFromClientArgs args); // Pause, Unpause, Log
-  Task CountVoteAsync(bool inSupport);
   Task RPCFromCandidateAsync(RPCFromCandidateArgs args);
-  Task RPCFromFollowerAsync(int id, bool applied);
+  Task RPCFromFollowerAsync(RPCFromFollowerArgs args);
 }
 
 // RPCFromClient *DONE*

@@ -39,7 +39,7 @@ public class ServerNode : IServerNode
     await _clusterHandler.RegisterVoteForAsync(args.CandidateId, args.Term);
   }
 
-  public async Task CountVoteAsync(bool inFavor) // Does not care who sent the vote, the servers are restricted to only vote once per term. Maybe I should take the term then?
+  async Task countVoteAsync(bool inFavor) // Does not care who sent the vote, the servers are restricted to only vote once per term. Maybe I should take the term then?
   {
     await _clusterHandler.CountVoteAsync(inFavor);
   }
@@ -56,7 +56,7 @@ public class ServerNode : IServerNode
 
     if (args.Term < _serverData.Term)
     {
-      await leaderServer.RPCFromFollowerAsync(_serverData.Id, false);
+      await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(_serverData.Id, _serverData.Term, false));
       return;
     }
 
@@ -78,12 +78,18 @@ public class ServerNode : IServerNode
 
     _serverData.Term = args.Term;
 
-    await leaderServer.RPCFromFollowerAsync(_serverData.Id, true);
+    await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(_serverData.Id, _serverData.Term, true));
   }
 
-  public async Task RPCFromFollowerAsync(int id, bool rejected)
+  public async Task RPCFromFollowerAsync(RPCFromFollowerArgs args)
   {
-    await _clusterHandler.RPCFromFollowerAsync(id, rejected);
+    if (_serverData.ServerIsACandidate())
+    {
+      await countVoteAsync(args.WasSuccess);
+      return;
+    }
+
+    await _clusterHandler.RPCFromFollowerAsync(args.FollowerId, args.WasSuccess);
   }
 
   async Task appendLogRPCAsync(string log, int clientId)

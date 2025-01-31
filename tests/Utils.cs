@@ -42,7 +42,7 @@ public static class Utils
         .WhenForAnyArgs(server => server.RPCFromCandidateAsync(Arg.Any<RPCFromCandidateArgs>()))
               .Do(async _ =>
               {
-                await leaderServer.CountVoteAsync(true);
+                await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(followerServer.Id, followerServer.Term, true));
               });
     }
   }

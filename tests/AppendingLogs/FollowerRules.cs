@@ -70,10 +70,10 @@ public class FollowerRules
     ServerNode server = new([leaderServer]);
 
     // When
-    await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1, 0, 0, 0));
+    await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 8, 0, 0, 0));
 
     // Then
-    await leaderServer.Received().RPCFromFollowerAsync(server.Id, true);
+    await leaderServer.Received().RPCFromFollowerAsync(Arg.Is<RPCFromFollowerArgs>(args => args.FollowerId == server.Id && args.WasSuccess));
   }
 }
 
