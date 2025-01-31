@@ -46,9 +46,4 @@ public static class Utils
               });
     }
   }
-
-  internal static void ServersVoteForLeaderWhenAsked(object value, ServerNode leaderServer)
-  {
-    throw new NotImplementedException();
-  }
 }
