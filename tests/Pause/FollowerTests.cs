@@ -2,7 +2,6 @@ using FluentAssertions;
 using Logic.Exceptions;
 using Logic.Models.Args;
 using Logic.Models.Server;
-using Logic.Utils;
 using NSubstitute;
 
 namespace Tests.Pause;
@@ -24,7 +23,7 @@ public class FollowerTests
 
     // When
     Utils.WaitForElectionTimerToRunOut();
-    await leaderServer.Pause();
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     await leaderServer.AppendLogRPCAsync("log", 0);
 
     // Then
@@ -44,7 +43,7 @@ public class FollowerTests
     ServerNode server = new([leaderServer]);
 
     // When
-    await server.Pause();
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     await server.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, server.Term + 1, -1, 1, -1));
 
     // Then
@@ -61,7 +60,7 @@ public class FollowerTests
     ServerNode server = new();
 
     // When & Then
-    await FluentActions.Invoking(() => server.Unpause())
+    await FluentActions.Invoking(() => server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: false)))
         .Should()
         .ThrowAsync<UnpausedARunningServerException>();
   }

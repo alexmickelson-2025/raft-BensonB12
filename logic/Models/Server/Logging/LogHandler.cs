@@ -7,7 +7,7 @@ public class LogHandler
   public IEnumerable<string> Messages => _logs.Select(log => log.Log);
   public Dictionary<int, int> FollowerToNextIndex { get; set; } = [];
   public int PreviousLogIndex => _logs.NextIndex - 1;
-  public uint PreviousLogTerm => _logs.PreviousLogTerm;
+  public uint? PreviousLogTerm => _logs.PreviousLogTerm;
 
   public LogHandler(IEnumerable<int> otherServerIds)
   {

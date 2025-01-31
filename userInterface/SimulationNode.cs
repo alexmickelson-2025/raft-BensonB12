@@ -27,11 +27,6 @@ public class SimulationNode : IServerNode
     return _innerServerNode.RPCFromLeaderAsync(args);
   }
 
-  public async Task Pause()
-  {
-    await _innerServerNode.Pause();
-  }
-
   public Task CountVoteAsync(bool inSupport)
   {
     return _innerServerNode.CountVoteAsync(inSupport);
@@ -47,13 +42,13 @@ public class SimulationNode : IServerNode
     return _innerServerNode.RPCFromFollowerAsync(id, rejected);
   }
 
-  public async Task Unpause()
-  {
-    await _innerServerNode.Unpause();
-  }
-
   public Task AppendLogRPCAsync(string log, int client_id)
   {
     return _innerServerNode.AppendLogRPCAsync(log, client_id);
+  }
+
+  public Task RPCFromClientAsync(RPCFromClientArgs args)
+  {
+    return _innerServerNode.RPCFromClientAsync(args);
   }
 }

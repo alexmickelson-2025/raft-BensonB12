@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
 using FluentAssertions;
+using Logic.Models.Args;
 using Logic.Models.Server;
 using NSubstitute;
 
@@ -17,7 +17,7 @@ public class CandidateTests
     ServerNode server = new();
 
     // When
-    await server.Pause();
+    await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
@@ -35,7 +35,7 @@ public class CandidateTests
     ServerNode server = new([otherServer]);
 
     // When
-    await server.Pause();
+    await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
@@ -52,8 +52,8 @@ public class CandidateTests
     ServerNode server = new();
 
     // When
-    await server.Pause();
-    await server.Unpause();
+    await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
+    await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: false));
     Utils.WaitForElectionTimerToRunOut();
 
     // Then
@@ -72,7 +72,7 @@ public class CandidateTests
     ServerNode server = new([candidateServer]);
 
     // When
-    await server.Pause();
+    await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     await server.RegisterVoteForAsync(candidateId, server.Term + 1);
     Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
 
@@ -93,7 +93,7 @@ public class CandidateTests
     ServerNode server = new([otherServer]);
 
     // When
-    await server.Pause();
+    await server.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     await server.RegisterVoteForAsync(otherServerId, server.Term + 1);
 
     // Then

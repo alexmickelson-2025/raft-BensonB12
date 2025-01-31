@@ -9,8 +9,7 @@ public interface IServerNode
   uint Term { get; }
   void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers);
   Task RPCFromLeaderAsync(RPCFromLeaderArgs args);
-  Task Pause();
-  Task Unpause();
+  Task RPCFromClientAsync(RPCFromClientArgs args);
   Task CountVoteAsync(bool inSupport);
   Task RegisterVoteForAsync(int id, uint term);
   Task RPCFromFollowerAsync(int id, bool applied);

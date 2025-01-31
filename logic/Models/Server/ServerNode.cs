@@ -14,11 +14,11 @@ public class ServerNode : IServerNode
   public ServerNodeState State => _serverData.State;
   public uint Term => _serverData.Term;
   ElectionHandler _electionHandler = null!;
-  IEnumerable<IClientNode> _clients;
+  IEnumerable<IClientNode> _knownClients;
 
   public ServerNode(IEnumerable<IServerNode>? otherServers = null, int? id = null, IEnumerable<IClientNode>? clients = null)
   {
-    _clients = clients ?? [];
+    _knownClients = clients ?? [];
     _serverData = new ServerData(id);
     InitializeClusterWithServers(otherServers ?? []);
   }
@@ -86,16 +86,6 @@ public class ServerNode : IServerNode
     await _clusterHandler.RPCFromFollowerAsync(id, rejected);
   }
 
-  public async Task Pause()
-  {
-    await _electionHandler.Pause();
-  }
-
-  public async Task Unpause()
-  {
-    await _electionHandler.Unpause();
-  }
-
   public async Task AppendLogRPCAsync(string log, int clientId)
   {
     if (_serverData.ServerIsDown())
@@ -103,11 +93,11 @@ public class ServerNode : IServerNode
       return;
     }
 
-    IClientNode? client = _clients.SingleOrDefault(client => client.Id == clientId);
+    IClientNode? client = _knownClients.SingleOrDefault(client => client.Id == clientId);
 
     if (_serverData.ServerIsTheLeader())
     {
-      appendLog(_serverData.Term, log);
+      _serverData.AddToLocalMemory(_serverData.Term, log);
       await _clusterHandler.SendRPCFromLeaderToEachFollowerAsync(log);
 
       if (client is null)
@@ -126,8 +116,35 @@ public class ServerNode : IServerNode
     await client.ResponseFromServerAsync(false, _clusterHandler.ClusterLeaderId);
   }
 
-  void appendLog(uint term, string log)
+  public async Task RPCFromClientAsync(RPCFromClientArgs args)
   {
-    _serverData.AddToLocalMemory(term, log);
+
+    IClientNode? client = _knownClients.SingleOrDefault(client => client.Id == args.ClientId);
+
+    if (client is null)
+    {
+      addClientToClients(args.ClientId);
+    }
+
+    if (args.ServerShouldBePaused == false)
+    {
+      await _electionHandler.Unpause();
+    }
+
+    if (args.Log is not null)
+    {
+      await AppendLogRPCAsync(args.Log, args.ClientId);
+    }
+
+    if (args.ServerShouldBePaused == true)
+    {
+      await _electionHandler.Pause();
+    }
+  }
+
+  void addClientToClients(int clientId)
+  {
+    Console.Write(clientId);
+    // IDK how to do this know
   }
 }

@@ -19,11 +19,11 @@ Welcome to your new app.
       <div>
         @if (simulationNode.State == ServerNodeState.DOWN)
         {
-          <button class="btn btn-danger" @onclick=(simulationNode.Unpause)>unpause</button>
+          @* <button class="btn btn-danger" @onclick=(simulationNode.Unpause)>unpause</button> *@
         }
         else
         {
-          <button class="btn btn-danger" @onclick=(simulationNode.Pause)>pause</button>
+          @* <button class="btn btn-danger" @onclick=(simulationNode.RPCFromClientAsync(new RPCFromClientArgs()))>pause</button> *@
         }
       </div>
       <div>

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using FluentAssertions;
+using Logic.Models.Args;
 using Logic.Models.Server;
 using NSubstitute;
 
@@ -26,7 +27,7 @@ public class LeaderTests
       // Wait
     }
 
-    await leaderServer.Pause();
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     Thread.Sleep(Utils.GENERAL_BUFFER_TIME); // I have to wait for the thread to come back. I need to fix that
     int callsSoFar = follower.ReceivedCalls().Count();
     Utils.WaitForHeartbeatTimerToRunOut();
@@ -50,9 +51,9 @@ public class LeaderTests
 
     // When
     Utils.WaitForElectionTimerToRunOut();
-    await leaderServer.Pause();
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: true));
     int callsSoFar = follower.ReceivedCalls().Count();
-    await leaderServer.Unpause();
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(0, serverShouldBePaused: false));
     Utils.WaitForHeartbeatTimerToRunOut();
 
     // Then

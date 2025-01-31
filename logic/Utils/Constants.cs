@@ -1,4 +1,6 @@
 
+using Logic.Models.Client;
+
 namespace Logic.Utils;
 
 public static class Constants

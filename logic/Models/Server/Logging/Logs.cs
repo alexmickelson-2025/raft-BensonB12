@@ -6,7 +6,7 @@ public class Logs : IEnumerable<LogData>
 {
   List<LogData> _logs = [];
   public int NextIndex => _logs.Count;
-  public uint PreviousLogTerm => _logs.Last().Term;
+  public uint? PreviousLogTerm => _logs.LastOrDefault()?.Term;
   public void Add(uint term, string log, int index)
   {
     _logs.Add(new LogData(term, log, index));
