@@ -1,6 +1,10 @@
 using Logic;
 using FluentAssertions;
 using NSubstitute;
+using Logic.Models.Server;
+using Logic.Models.Args;
+using Logic.Models.Server.Logging;
+using System.Threading.Tasks;
 namespace Tests.AppendingLogs;
 
 public class FollowerFixes
@@ -9,13 +13,22 @@ public class FollowerFixes
   /// Testing Logs #15
   /// </summary>
   [Fact]
-  public void FollowerHasItsIndexDecreasedByLeaderIfIndexIsGreater()
+  public async Task FollowerHasItsIndexDecreasedByLeaderIfIndexIsGreater()
   {
     // Given
+    int leaderId = 0;
+    uint term = 2;
+
+    IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
+    ServerNode follower = new(otherServers: [leaderServer]);
 
     // When
+    await follower.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, term, null, null, null, newLogs: [new LogData(term, "log", 0)]));
+    Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
+    await follower.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, term, null, null, null, newLogs: [new LogData(term, "log", 0)]));
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
