@@ -35,13 +35,24 @@ public class FollowerFixes
   /// Testing Logs #15
   /// </summary>
   [Fact]
-  public void FollowerDeletesWhatTheyHaveIfIndexIsLessThanOurs()
+  public async Task FollowerDeletesWhatTheyHaveIfIndexIsLessThanOurs()
   {
     // Given
+    int leaderId = 0;
+    uint term = 2;
+
+    IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
+    ServerNode follower = new(otherServers: [leaderServer]);
 
     // When
-
+    await follower.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, term, null, null, null, newLogs: [new LogData(term, "log", 0)]));
+    Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
+    await follower.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, term, 0, 0, 0, newLogs: [new LogData(term, "log", 0)]));
+    Thread.Sleep(Utils.GENERAL_BUFFER_TIME);
+    await follower.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, term, null, null, null, newLogs: [new LogData(term, "log", 0)]));
+    
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
