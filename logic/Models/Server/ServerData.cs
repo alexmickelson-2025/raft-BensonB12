@@ -18,7 +18,7 @@ public class ServerData
 
   public ServerData(int? id = null)
   {
-    Id = id ?? Util.GenerateUniqueServerNodeId();
+    Id = id ?? Util.GenerateId();
   }
 
   public void SetState(ServerNodeState? newState)

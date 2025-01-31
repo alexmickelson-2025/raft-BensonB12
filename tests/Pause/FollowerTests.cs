@@ -2,6 +2,7 @@ using FluentAssertions;
 using Logic.Exceptions;
 using Logic.Models.Args;
 using Logic.Models.Server;
+using Logic.Utils;
 using NSubstitute;
 
 namespace Tests.Pause;
@@ -15,15 +16,19 @@ public class FollowerTests
   public async Task WhenServerIsPausedItDoesNotLog()
   {
     // Given
-    ServerNode server = new();
+    ServerNode leaderServer = new();
+    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
+
+    Utils.ServersVoteForLeaderWhenAsked([followerServer], leaderServer);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
-    await server.Pause();
-    await server.AppendLogRPCAsync("log");
+    Utils.WaitForElectionTimerToRunOut();
+    await leaderServer.Pause();
+    await leaderServer.AppendLogRPCAsync("log", 0);
 
     // Then
-    // server.LogMessages.Should().BeEmpty();
-    Assert.Fail();
+    await followerServer.DidNotReceive().RPCFromLeaderAsync(Arg.Is<RPCFromLeaderArgs>(arg => arg.Log != null));
   }
 
   /// <summary>

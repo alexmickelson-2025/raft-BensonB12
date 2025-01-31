@@ -2,7 +2,7 @@ namespace Logic.Utils;
 
 public static class Util
 {
-  public static int GenerateUniqueServerNodeId()
+  public static int GenerateId()
   {
     return Random.Shared.Next(int.MinValue, int.MaxValue);
   }

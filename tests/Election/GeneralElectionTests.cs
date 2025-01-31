@@ -14,11 +14,12 @@ public class ElectionTests
     public void WhenTheFollowerDoesNotGetAHeartbeatOrLogForTheirElectionTimeIntervalItStartsAnElection()
     {
         // Given
-        IServerNode otherServer = Substitute.For<IServerNode>();
-        ServerNode server = new([otherServer]);
+        IServerNode serverOne = Substitute.For<IServerNode>();
+        IServerNode serverTwo = Substitute.For<IServerNode>();
+        ServerNode server = new([serverOne, serverTwo]);
 
         // When
-        Thread.Sleep(Constants.EXCLUSIVE_MAXIMUM_ELECTION_TIME);
+        Utils.WaitForElectionTimerToRunOut();
 
         // Then
         server.State.Should().Be(ServerNodeState.CANDIDATE);

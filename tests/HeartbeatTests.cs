@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Logic.Models.Args;
+using Logic.Models.Client;
 using Logic.Models.Server;
 using Logic.Utils;
 using NSubstitute;
@@ -43,16 +44,18 @@ public class HeartbeatTests
   {
     // Given
     int leaderId = 1;
+    int clientId = 1;
 
+    IClientNode clientNode = Utils.CreateIClientNodeSubstituteWithId(clientId);
     IServerNode leaderServer = Utils.CreateIServerNodeSubstituteWithId(leaderId);
-    ServerNode followerServer = new([leaderServer]);
+    ServerNode followerServer = new([leaderServer], clients: [clientNode]);
 
     // When
     await followerServer.RPCFromLeaderAsync(new RPCFromLeaderArgs(leaderId, 1));
+    await followerServer.AppendLogRPCAsync("", clientId);
 
     // Then
-    // followerServer.ClusterLeaderId.Should().Be(leaderId);
-    Assert.Fail();
+    await clientNode.Received().ResponseFromServerAsync(false, leaderId);
   }
 
   /// <summary>

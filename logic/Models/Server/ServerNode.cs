@@ -1,5 +1,6 @@
 ﻿using Logic.Exceptions;
 using Logic.Models.Args;
+using Logic.Models.Client;
 using Logic.Models.Cluster;
 using Logic.Models.Server.Election;
 
@@ -13,9 +14,11 @@ public class ServerNode : IServerNode
   public ServerNodeState State => _serverData.State;
   public uint Term => _serverData.Term;
   ElectionHandler _electionHandler = null!;
+  IEnumerable<IClientNode> _clients;
 
-  public ServerNode(IEnumerable<IServerNode>? otherServers = null, int? id = null)
+  public ServerNode(IEnumerable<IServerNode>? otherServers = null, int? id = null, IEnumerable<IClientNode>? clients = null)
   {
+    _clients = clients ?? [];
     _serverData = new ServerData(id);
     InitializeClusterWithServers(otherServers ?? []);
   }
@@ -94,17 +97,34 @@ public class ServerNode : IServerNode
     await _electionHandler.Unpause();
   }
 
-  public async Task AppendLogRPCAsync(string log)
+  public async Task AppendLogRPCAsync(string log, int clientId)
   {
     if (_serverData.ServerIsDown())
     {
       return;
     }
 
-    // TODO: Make sure I am the leader
-    appendLog(_serverData.Term, log);
+    IClientNode? client = _clients.SingleOrDefault(client => client.Id == clientId);
 
-    await _clusterHandler.SendRPCFromLeaderToEachFollowerAsync(log);
+    if (_serverData.ServerIsTheLeader())
+    {
+      appendLog(_serverData.Term, log);
+      await _clusterHandler.SendRPCFromLeaderToEachFollowerAsync(log);
+
+      if (client is null)
+      {
+        return;
+      }
+
+      await client.ResponseFromServerAsync(true);
+    }
+
+    if (client is null)
+    {
+      return;
+    }
+
+    await client.ResponseFromServerAsync(false, _clusterHandler.ClusterLeaderId);
   }
 
   void appendLog(uint term, string log)

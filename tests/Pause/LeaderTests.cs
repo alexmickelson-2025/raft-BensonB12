@@ -11,7 +11,7 @@ public class LeaderTests
   /// Testing Pausing #1
   /// </summary>
   [Fact]
-  public void WhenServerIsLeaderAndPausedOtherNodesDoNotGetHeartbeats()
+  public async Task WhenServerIsLeaderAndPausedOtherNodesDoNotGetHeartbeats()
   {
     // Given
     IServerNode follower = Utils.CreateIServerNodeSubstituteWithId(1);
@@ -26,7 +26,7 @@ public class LeaderTests
       // Wait
     }
 
-    leaderServer.Pause();
+    await leaderServer.Pause();
     Thread.Sleep(Utils.GENERAL_BUFFER_TIME); // I have to wait for the thread to come back. I need to fix that
     int callsSoFar = follower.ReceivedCalls().Count();
     Utils.WaitForHeartbeatTimerToRunOut();

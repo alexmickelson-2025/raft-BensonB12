@@ -1,3 +1,4 @@
+using Logic.Models.Client;
 using Logic.Models.Server;
 using Logic.Utils;
 using NSubstitute;
@@ -23,6 +24,13 @@ public static class Utils
     IServerNode server = Substitute.For<IServerNode>();
     server.Id.Returns(id);
     return server;
+  }
+
+  public static IClientNode CreateIClientNodeSubstituteWithId(int id)
+  {
+    IClientNode client = Substitute.For<IClientNode>();
+    client.Id.Returns(id);
+    return client;
   }
 
   public static void ServersVoteForLeaderWhenAsked(IEnumerable<IServerNode> followerServers, IServerNode leaderServer)
