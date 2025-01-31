@@ -106,6 +106,8 @@ public class ServerNode : IServerNode
       _serverData.AddToLocalMemory(_serverData.Term, log);
       await _clusterHandler.SendRPCFromLeaderToEachFollowerAsync(log);
 
+      // TODO: Some sort of waiting for the servers to respond here
+
       if (client is null)
       {
         return;
