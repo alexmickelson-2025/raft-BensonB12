@@ -60,13 +60,25 @@ public class ClientTests
   /// Testing Logs #12
   /// </summary>
   [Fact]
-  public void WhenALeaderReceivesAMajorityResponsesAfterALogReplicationHeartbeatTheLeaderSendsAConfirmationToClient()
+  public async Task WhenALeaderReceivesAMajorityResponsesAfterALogReplicationHeartbeatTheLeaderSendsAConfirmationToClient()
   {
     // Given
+    int clientId = 0;
+
+    IClientNode client = Utils.CreateIClientNodeSubstituteWithId(clientId);
+    ServerNode leaderServer = new(clients: [client]);
+    IServerNode followerServer = Utils.CreateIServerNodeSubstituteWithId(1);
+
+    Utils.ServersAlwaysRespondTrue([followerServer], leaderServer);
+    leaderServer.InitializeClusterWithServers([followerServer]);
 
     // When
+    Utils.WaitForElectionTimerToRunOut();
+    await leaderServer.RPCFromClientAsync(new RPCFromClientArgs(clientId, "log"));
+    Thread.Sleep(Constants.CLUSTER_WAITS_FOR_RESPONSE_INTERVAL);
 
     // Then
+    await client.ReceivedWithAnyArgs().ResponseFromServerAsync(Arg.Any<bool>(), Arg.Any<int>());
   }
 
   /// <summary>

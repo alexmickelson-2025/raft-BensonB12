@@ -46,4 +46,19 @@ public static class Utils
               });
     }
   }
+
+  public static void ServersAlwaysRespondTrue(IEnumerable<IServerNode> followerServers, IServerNode leaderServer)
+  {
+    ServersVoteForLeaderWhenAsked(followerServers, leaderServer);
+
+    foreach (IServerNode followerServer in followerServers)
+    {
+      followerServer
+        .WhenForAnyArgs(server => server.RPCFromLeaderAsync(Arg.Any<RPCFromLeaderArgs>()))
+              .Do(async _ =>
+              {
+                await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(followerServer.Id, followerServer.Term, true));
+              });
+    }
+  }
 }
