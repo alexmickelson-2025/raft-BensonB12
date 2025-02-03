@@ -45,5 +45,7 @@ services:
     build:
       context: .
       dockerfile: slow-dev-client.Dockerfile
+    ports:
+      - 5000:8080
     environment:
       - NODE_URLS=http://node1:8080,http://node2:8080,http://node3:8080
