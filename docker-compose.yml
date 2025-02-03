@@ -67,7 +67,5 @@ services:
     volumes:
       - ./:/app
     environment:
-      - NODE_ID=1
-      - OTHER_NODES=2,http://node2:8080;3,http://node3:8080
-      - NODE_INTERVAL_SCALAR=50
+      - NODE_URLS=http://node1:8080,http://node2:8080,http://node3:8080
     command: dotnet watch --project RaftRestApi
