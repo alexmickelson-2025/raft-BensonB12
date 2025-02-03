@@ -9,15 +9,15 @@ public class Program
 {
   public static void Main(string[] args)
   {
-    // var builder = WebApplication.CreateBuilder(args);
-    // builder.WebHost.UseUrls("http://0.0.0.0:8080");
+    var builder = WebApplication.CreateBuilder(args);
+    builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
-    // var nodeId = Environment.GetEnvironmentVariable("NODE_ID") ?? throw new Exception("NODE_ID environment variable not set");
-    // var otherNodesRaw = Environment.GetEnvironmentVariable("OTHER_NODES") ?? throw new Exception("OTHER_NODES environment variable not set");
-    // var nodeIntervalScalarRaw = Environment.GetEnvironmentVariable("NODE_INTERVAL_SCALAR") ?? throw new Exception("NODE_INTERVAL_SCALAR environment variable not set");
+    var nodeId = Environment.GetEnvironmentVariable("NODE_ID") ?? throw new Exception("NODE_ID environment variable not set");
+    var otherNodesRaw = Environment.GetEnvironmentVariable("OTHER_NODES") ?? throw new Exception("OTHER_NODES environment variable not set");
+    var nodeIntervalScalarRaw = Environment.GetEnvironmentVariable("NODE_INTERVAL_SCALAR") ?? throw new Exception("NODE_INTERVAL_SCALAR environment variable not set");
 
-    // builder.Services.AddLogging();
-    // var serviceName = "Node" + nodeId;
+    builder.Services.AddLogging();
+    var serviceName = "Node" + nodeId;
     // builder.Logging.AddOpenTelemetry(options =>
     // {
     //   options
@@ -31,11 +31,11 @@ public class Program
     //       options.Endpoint = new Uri("http://dashboard:18889");
     //     });
     // });
-    // var app = builder.Build();
+    var app = builder.Build();
 
-    // var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    // logger.LogInformation("Node ID {name}", nodeId);
-    // logger.LogInformation("Other nodes environment config: {}", otherNodesRaw);
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Node ID {name}", nodeId);
+    logger.LogInformation("Other nodes environment config: {}", otherNodesRaw);
 
     // IServerNode[] otherNodes = otherNodesRaw
     //   .Split(";")
@@ -52,9 +52,9 @@ public class Program
 
     // ServerNode.NodeIntervalScalar = double.Parse(nodeIntervalScalarRaw);
 
-    // // node.RunElectionLoop();
+    // node.RunElectionLoop();
 
-    // app.MapGet("/health", () => "healthy");
+    app.MapGet("/health", () => "healthy");
 
     // app.MapGet("/nodeData", () =>
     // {
@@ -100,6 +100,6 @@ public class Program
     //   await node.SendCommand(data);
     // });
 
-    // app.Run();
+    app.Run();
   }
 }
