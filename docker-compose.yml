@@ -2,16 +2,11 @@ services:
   node1:
     build:
       context: .
-      dockerfile: dev.Dockerfile
-    working_dir: /app
-    user: 1000:1000
-    volumes:
-      - ./:/app
+      dockerfile: dev-slow.Dockerfile
     environment:
       - NODE_ID=1
       - OTHER_NODES=2,http://node2:8080;3,http://node3:8080
       - NODE_INTERVAL_SCALAR=50
-    command: dotnet watch --project website
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -21,16 +16,11 @@ services:
   node2:
     build:
       context: .
-      dockerfile: dev.Dockerfile
-    working_dir: /app
-    user: 1000:1000
-    volumes:
-      - ./:/app
+      dockerfile: dev-slow.Dockerfile
     environment:
       - NODE_ID=2
       - OTHER_NODES=1,http://node1:8080;3,http://node3:8080
       - NODE_INTERVAL_SCALAR=50
-    command: dotnet watch --project website
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -40,16 +30,11 @@ services:
   node3:
     build:
       context: .
-      dockerfile: dev.Dockerfile
-    working_dir: /app
-    user: 1000:1000
-    volumes:
-      - ./:/app
+      dockerfile: dev-slow.Dockerfile
     environment:
       - NODE_ID=3
       - OTHER_NODES=1,http://node1:8080;2,http://node2:8080
       - NODE_INTERVAL_SCALAR=50
-    command: dotnet watch --project website
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -59,13 +44,6 @@ services:
   client:
     build:
       context: .
-      dockerfile: dev.Dockerfile
-    working_dir: /app
-    user: 1000:1000
-    ports:
-      - 5000:8080
-    volumes:
-      - ./:/app
+      dockerfile: dev-slow-client.Dockerfile
     environment:
       - NODE_URLS=http://node1:8080,http://node2:8080,http://node3:8080
-    command: dotnet watch --project raftDockerClient
