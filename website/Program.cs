@@ -15,6 +15,16 @@ public class Program
     var nodeId = Environment.GetEnvironmentVariable("NODE_ID") ?? throw new Exception("NODE_ID environment variable not set");
     var otherNodesRaw = Environment.GetEnvironmentVariable("OTHER_NODES") ?? throw new Exception("OTHER_NODES environment variable not set");
     var nodeIntervalScalarRaw = Environment.GetEnvironmentVariable("NODE_INTERVAL_SCALAR") ?? throw new Exception("NODE_INTERVAL_SCALAR environment variable not set");
+    int nodeIdInt = 0;
+
+    try
+    {
+      nodeIdInt = int.Parse(nodeId);
+    }
+    catch
+    {
+      throw new Exception("NODE_ID was not an int");
+    }
 
     builder.Services.AddLogging();
     var serviceName = "Node" + nodeId;
@@ -99,6 +109,8 @@ public class Program
     // {
     //   await node.SendCommand(data);
     // });
+
+    app.MapGet("/info", () => { return new ServerInfo() { Id = nodeIdInt, Term = 0 }; });
 
     app.Run();
   }

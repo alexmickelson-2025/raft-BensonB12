@@ -10,8 +10,48 @@
   <div>@url</div>
 }
 
+@foreach (ServerInfo serverInfo in servers)
+{
+  <div>Server Id: @serverInfo.Id</div>
+  <div>Server Term: @serverInfo.Term</div>
+}
+
 @code {
   HttpClient http = new HttpClient();
+  string[] Urls = (Environment.GetEnvironmentVariable("NODE_URLS") ?? "").Split(',');
+  List<ServerInfo> servers = new List<ServerInfo> { new ServerInfo(), new ServerInfo(), new ServerInfo() };
+  Timer? timer;
 
-  string[] Urls = Environment.GetEnvironmentVariable("NODE_URLS").ToString().Split(',');
+  protected override void OnInitialized()
+  {
+    timer = new Timer(async _ =>
+    {
+      await FetchServerInfo();
+      await InvokeAsync(StateHasChanged);
+    }, null, 0, 200);
+  }
+
+  private async Task FetchServerInfo()
+  {
+    for (int i = 0; i < Urls.Length; i++)
+    {
+      try
+      {
+        var serverInfo = await http.GetFromJsonAsync<ServerInfo>(Urls[i] + "/info");
+        if (serverInfo != null)
+        {
+          servers[i] = serverInfo;
+        }
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Error fetching data from {Urls[i]}: {ex.Message}");
+      }
+    }
+  }
+
+  public void Dispose()
+  {
+    timer?.Dispose();
+  }
 }
