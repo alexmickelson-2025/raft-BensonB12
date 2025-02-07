@@ -20,19 +20,23 @@
   <div>Server Id: @serverInfo.Id</div>
   <div>Server Term: @serverInfo.Term</div>
   <div>Local Logs</div>
+
   @foreach (LogData logData in serverInfo.LogInfo.LocalLogs)
   {
     <div>Index: @logData.Index</div>
     <div>Term: @logData.Term</div>
     <div>Message: @logData.Log</div>
   }
+
   <div>Committed Logs (State Machine)</div>
+
   @foreach (LogData logData in serverInfo.LogInfo.CommittedLogs)
   {
     <div>Index: @logData.Index</div>
     <div>Term: @logData.Term</div>
     <div>Message: @logData.Log</div>
   }
+
   <div>Server State: @((ServerNodeState)serverInfo.ServerStateId)</div>
   <button @onclick=@(async () => await PauseServer(serverInfo)) class="btn-warning">Pause</button>
   <button @onclick=@(async () => await UnpauseServer(serverInfo)) class="btn-info" disabled=@(serverInfo.ServerStateId !=
@@ -41,10 +45,14 @@
 
 <br>
 
+<input type="text" @bind-value=inputLog>
+<button @onclick=SubmitLog>Submit Log</button>
+
 @* <button @onclick=@(async () => await PauseAllServers()) class="btn-danger">Pause all</button>
 <button @onclick=@(async () => await UnpauseAllServers()) class="btn-info">Unpause all</button> *@
 
 @code {
+  string inputLog = "";
   HttpClient http = new HttpClient();
   string[] Urls = (Environment.GetEnvironmentVariable("NODE_URLS") ?? "").Split(',');
   List<ServerInfo> servers = new List<ServerInfo> { new ServerInfo(), new ServerInfo(), new ServerInfo() };
@@ -85,7 +93,7 @@
 
   public async Task PauseServer(ServerInfo serverInfo)
   {
-    RPCFromClientArgs args = new(serverInfo.Id, serverShouldBePaused: true);
+    RPCFromClientArgs args = new(0, serverShouldBePaused: true);
     string serverUrl = Urls[servers.IndexOf(serverInfo)];
     await http.PostAsJsonAsync(serverUrl + "/from/client", args);
   }
@@ -100,7 +108,7 @@
 
   public async Task UnpauseServer(ServerInfo serverInfo)
   {
-    RPCFromClientArgs args = new(serverInfo.Id, serverShouldBePaused: false);
+    RPCFromClientArgs args = new(0, serverShouldBePaused: false);
     string serverUrl = Urls[servers.IndexOf(serverInfo)];
     await http.PostAsJsonAsync(serverUrl + "/from/client", args);
   }
@@ -111,5 +119,19 @@
     {
       await UnpauseServer(serverInfo);
     }
+  }
+
+  public async Task SubmitLog()
+  {
+    ServerInfo? leader = servers.FirstOrDefault((server) => server.ServerStateId == 2);
+
+    if (leader is null)
+    {
+      return;
+    }
+
+    RPCFromClientArgs args = new(0, log: inputLog);
+    string serverUrl = Urls[servers.IndexOf(leader)];
+    await http.PostAsJsonAsync(serverUrl + "/from/client", args);
   }
 }
