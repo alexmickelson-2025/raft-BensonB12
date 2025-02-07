@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Logic.Models.Args;
 using Logic.Models.Server;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
@@ -28,37 +29,33 @@ public class Program
 
     builder.Services.AddLogging();
     var serviceName = "Node" + nodeId;
-    // builder.Logging.AddOpenTelemetry(options =>
-    // {
-    //   options
-    //     .SetResourceBuilder(
-    //         ResourceBuilder
-    //           .CreateDefault()
-    //           .AddService(serviceName)
-    //     )
-    //     .AddOtlpExporter(options =>
-    //     {
-    //       options.Endpoint = new Uri("http://dashboard:18889");
-    //     });
-    // });
+    builder.Logging.AddOpenTelemetry(options =>
+    {
+      options
+        .SetResourceBuilder(
+            ResourceBuilder
+              .CreateDefault()
+              .AddService(serviceName)
+        )
+        .AddOtlpExporter(options =>
+        {
+          options.Endpoint = new Uri("http://dashboard:18889");
+        });
+    });
     var app = builder.Build();
 
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Node ID {name}", nodeId);
     logger.LogInformation("Other nodes environment config: {}", otherNodesRaw);
 
-    // IServerNode[] otherNodes = otherNodesRaw
-    //   .Split(";")
-    //   .Select(s => new HttpServer(int.Parse(s.Split(",")[0]), s.Split(",")[1]))
-    //   .ToArray();
+    IServerNode[] otherNodes = otherNodesRaw
+      .Split(";")
+      .Select(s => new HttpServer(int.Parse(s.Split(",")[0]), s.Split(",")[1]))
+      .ToArray();
 
-    // logger.LogInformation("other nodes {nodes}", JsonSerializer.Serialize(otherNodes));
+    logger.LogInformation("other nodes {nodes}", JsonSerializer.Serialize(otherNodes));
 
-    // var node = new ServerNode(otherNodes)
-    // {
-    //   Id = int.Parse(nodeId),
-    //   logger = app.Services.GetService<ILogger<ServerNode>>()
-    // };
+    ServerNode node = new(otherServers: otherNodes, id: nodeIdInt); // could add a logger here
 
     // ServerNode.NodeIntervalScalar = double.Parse(nodeIntervalScalarRaw);
 
@@ -66,6 +63,7 @@ public class Program
 
     app.MapGet("/health", () => "healthy");
 
+    app.MapGet("/info", () => { return new ServerInfo() { Id = nodeIdInt, Term = 0 }; });
     // app.MapGet("/nodeData", () =>
     // {
     //   return new NodeData(
@@ -81,36 +79,29 @@ public class Program
     //   );
     // });
 
-    // app.MapPost("/request/appendEntries", async (AppendEntriesData request) =>
-    // {
-    //   logger.LogInformation("received append entries request {request}", request);
-    //   await node.RequestAppendEntries(request);
-    // });
+    app.MapPost("/from/leader", async (RPCFromLeaderArgs request) =>
+    {
+      logger.LogInformation("received request from leader {request}", request);
+      await node.RPCFromLeaderAsync(request);
+    });
 
-    // app.MapPost("/request/vote", async (VoteRequestData request) =>
-    // {
-    //   logger.LogInformation("received vote request {request}", request);
-    //   await node.RequestVote(request);
-    // });
+    app.MapPost("/from/follower", async (RPCFromFollowerArgs response) =>
+    {
+      logger.LogInformation("received response from follower {request}", response);
+      await node.RPCFromFollowerAsync(response);
+    });
 
-    // app.MapPost("/response/appendEntries", async (RespondEntriesData response) =>
-    // {
-    //   logger.LogInformation("received append entries response {response}", response);
-    //   await node.RespondAppendEntries(response);
-    // });
+    app.MapPost("/from/candidate", async (RPCFromCandidateArgs request) =>
+    {
+      logger.LogInformation("received request from candidate {request}", request);
+      await node.RPCFromCandidateAsync(request);
+    });
 
-    // app.MapPost("/response/vote", async (VoteResponseData response) =>
-    // {
-    //   logger.LogInformation("received vote response {response}", response);
-    //   await node.ResponseVote(response);
-    // });
-
-    // app.MapPost("/request/command", async (ClientCommandData data) =>
-    // {
-    //   await node.SendCommand(data);
-    // });
-
-    app.MapGet("/info", () => { return new ServerInfo() { Id = nodeIdInt, Term = 0 }; });
+    app.MapPost("/from/client", async (RPCFromClientArgs command) =>
+    {
+      logger.LogInformation("received command from client {request}", command);
+      await node.RPCFromClientAsync(command);
+    });
 
     app.Run();
   }
