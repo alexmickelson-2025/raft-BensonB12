@@ -63,7 +63,10 @@ public class Program
 
     app.MapGet("/health", () => "healthy");
 
-    app.MapGet("/info", () => { return new ServerInfo() { Id = nodeIdInt, Term = 0 }; });
+    app.MapGet("/info", () =>
+        Results.Json(new ServerInfo() { Id = node.Id, Term = node.Term, ServerStateId = (int)node.State })
+      );
+
     // app.MapGet("/nodeData", () =>
     // {
     //   return new NodeData(

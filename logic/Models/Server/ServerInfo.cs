@@ -1,5 +1,22 @@
 public class ServerInfo
 {
-  public uint Term;
-  public int Id;
+  public int Id { get; set; }
+  public uint Term { get; set; }
+  public int ServerStateId { get; set; }
+
 }
+
+// app.MapGet("/nodeData", () =>
+// {
+//   return new NodeData(
+//     Id: node.Id,
+//     Status: node.Status,
+//     ElectionTimeout: node.ElectionTimeout,
+//     Term: node.CurrentTerm,
+//     CurrentTermLeader: node.CurrentTermLeader,
+//     CommittedEntryIndex: node.CommittedEntryIndex,
+//     Log: node.Log,
+//     State: node.State,
+//     NodeIntervalScalar: RaftNode.NodeIntervalScalar
+//   );
+// });

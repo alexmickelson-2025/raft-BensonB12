@@ -16,85 +16,56 @@ public class HttpServer : IServerNode
     Url = url;
   }
 
-  //   public async Task RequestAppendEntries(AppendEntriesData request)
-  //   {
-  //     try
-  //     {
-  //       await client.PostAsJsonAsync(Url + "/request/appendEntries", request);
-  //     }
-  //     catch (HttpRequestException)
-  //     {
-  //       Console.WriteLine($"node {Url} is down");
-  //     }
-  //   }
-
-  //   public async Task RequestVote(VoteRequestData request)
-  //   {
-  //     try
-  //     {
-  //       await client.PostAsJsonAsync(Url + "/request/vote", request);
-  //     }
-  //     catch (HttpRequestException)
-  //     {
-  //       Console.WriteLine($"node {Url} is down");
-  //     }
-  //   }
-
-  //   public async Task RespondAppendEntries(RespondEntriesData response)
-  //   {
-  //     try
-  //     {
-  //       await client.PostAsJsonAsync(Url + "/response/appendEntries", response);
-  //     }
-  //     catch (HttpRequestException)
-  //     {
-  //       Console.WriteLine($"node {Url} is down");
-  //     }
-  //   }
-
-  //   public async Task ResponseVote(VoteResponseData response)
-  //   {
-  //     try
-  //     {
-  //       await client.PostAsJsonAsync(Url + "/response/vote", response);
-  //     }
-  //     catch (HttpRequestException)
-  //     {
-  //       Console.WriteLine($"node {Url} is down");
-  //     }
-  //   }
-
-  //   public async Task SendCommand(ClientCommandData data)
-  //   {
-  //     await client.PostAsJsonAsync(Url + "/request/command", data);
-  //   }
-
-  public ServerNodeState State => throw new NotImplementedException();
-
-  public uint Term => throw new NotImplementedException();
-
   public void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers)
   {
     throw new NotImplementedException();
   }
 
-  public Task RPCFromCandidateAsync(RPCFromCandidateArgs args)
+  public async Task RPCFromCandidateAsync(RPCFromCandidateArgs args)
   {
-    throw new NotImplementedException();
+    try
+    {
+      await client.PostAsJsonAsync(Url + "/from/candidate", args);
+    }
+    catch (HttpRequestException)
+    {
+      Console.WriteLine($"node {Url} is down");
+    }
   }
 
-  public Task RPCFromClientAsync(RPCFromClientArgs args)
+  public async Task RPCFromClientAsync(RPCFromClientArgs args)
   {
-    throw new NotImplementedException();
+    try
+    {
+      await client.PostAsJsonAsync(Url + "/from/client", args);
+    }
+    catch (HttpRequestException)
+    {
+      Console.WriteLine($"node {Url} is down");
+    }
   }
 
-  public Task RPCFromFollowerAsync(RPCFromFollowerArgs args)
+  public async Task RPCFromFollowerAsync(RPCFromFollowerArgs args)
   {
-    throw new NotImplementedException();
+    try
+    {
+      await client.PostAsJsonAsync(Url + "/from/follower", args);
+    }
+    catch (HttpRequestException)
+    {
+      Console.WriteLine($"node {Url} is down");
+    }
   }
 
-  public Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
+  public async Task RPCFromLeaderAsync(RPCFromLeaderArgs args)
   {
-    throw new NotImplementedException();
+    try
+    {
+      await client.PostAsJsonAsync(Url + "/from/leader", args);
+    }
+    catch (HttpRequestException)
+    {
+      Console.WriteLine($"node {Url} is down");
+    }
   }
 }

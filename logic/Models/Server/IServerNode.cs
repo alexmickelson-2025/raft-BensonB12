@@ -5,9 +5,6 @@ namespace Logic.Models.Server;
 public interface IServerNode
 {
   int Id { get; }
-  ServerNodeState State { get; }
-  uint Term { get; }
-  void InitializeClusterWithServers(IEnumerable<IServerNode> otherServers);
   Task RPCFromLeaderAsync(RPCFromLeaderArgs args); // Heartbeat, Log / catchup Log
   Task RPCFromClientAsync(RPCFromClientArgs args); // Pause, Unpause, Log
   Task RPCFromCandidateAsync(RPCFromCandidateArgs args);
@@ -22,7 +19,6 @@ public interface IServerNode
 // RPCFromLeader
 // // Heartbeat
 // // Log * catchup logs
-
 
 // RPCFromFollower
 // Heartbeat response

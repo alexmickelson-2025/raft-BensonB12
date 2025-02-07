@@ -42,7 +42,7 @@ public static class Utils
         .WhenForAnyArgs(server => server.RPCFromCandidateAsync(Arg.Any<RPCFromCandidateArgs>()))
               .Do(async _ =>
               {
-                await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(followerServer.Id, followerServer.Term, true));
+                await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(followerServer.Id, 0, true));
               });
     }
   }
@@ -57,7 +57,7 @@ public static class Utils
         .WhenForAnyArgs(server => server.RPCFromLeaderAsync(Arg.Any<RPCFromLeaderArgs>()))
               .Do(async _ =>
               {
-                await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(followerServer.Id, followerServer.Term, true));
+                await leaderServer.RPCFromFollowerAsync(new RPCFromFollowerArgs(followerServer.Id, 0, true));
               });
     }
   }
