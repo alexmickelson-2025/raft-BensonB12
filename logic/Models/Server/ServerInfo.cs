@@ -1,9 +1,11 @@
+using Logic.Models.Server.Logging;
+
 public class ServerInfo
 {
   public int Id { get; set; }
   public uint Term { get; set; }
   public int ServerStateId { get; set; }
-
+  public LogInfo LogInfo { get; set; } = new();
 }
 
 // app.MapGet("/nodeData", () =>

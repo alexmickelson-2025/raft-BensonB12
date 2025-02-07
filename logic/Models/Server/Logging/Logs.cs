@@ -2,35 +2,26 @@ using System.Collections;
 
 namespace Logic.Models.Server.Logging;
 
-public class Logs : IEnumerable<LogData>
+public class Logs
 {
-  List<LogData> _logs = [];
-  public int NextIndex => _logs.Count;
-  public uint? PreviousLogTerm => _logs.LastOrDefault()?.Term;
+  public List<LogData> Committed { get; } = [];
+  public List<LogData> Local { get; } = [];
+  public int NextIndex => Committed.Count;
+  public uint? PreviousLogTerm => Committed.LastOrDefault()?.Term;
   public void Add(uint term, string log, int index)
   {
-    _logs.Add(new LogData(term, log, index));
+    Committed.Add(new LogData(term, log, index));
   }
 
-  public LogData this[int index]
-  {
-    get => _logs[index];
-    // set { }
-  }
-
-  public IEnumerator<LogData> GetEnumerator()
-  {
-    return _logs.GetEnumerator();
-  }
-
-  IEnumerator IEnumerable.GetEnumerator()
-  {
-    return GetEnumerator();
-  }
+  // public LogData this[int index]
+  // {
+  //   get => Committed[index];
+  //   // set { }
+  // }
 
   public bool SetNextIndexTo(int nextIndex)
   {
-    if (_logs.Count != nextIndex)
+    if (Committed.Count != nextIndex)
     {
       return false;
       // throw new Exception();
@@ -41,12 +32,12 @@ public class Logs : IEnumerable<LogData>
 
   public int LatestCommittedLogIndex()
   {
-    return _logs.Count;
+    return Committed.Count;
   }
 
   public int LastAppliedLogIndex()
   {
-    return _logs.Count;
+    return Committed.Count;
   }
 
   public bool CanExceptLog()

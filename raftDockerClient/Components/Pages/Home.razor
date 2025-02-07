@@ -18,6 +18,8 @@
 {
   <div>Server Id: @serverInfo.Id</div>
   <div>Server Term: @serverInfo.Term</div>
+  <div>Local Logs</div>
+  <div>Committed Logs</div>
   <div>Server State: @((ServerNodeState)serverInfo.ServerStateId)</div>
   <button @onclick=@(async () => await PauseServer(serverInfo)) class="btn-warning">Pause</button>
   <button @onclick=@(async () => await UnpauseServer(serverInfo)) class="btn-info" disabled=@(serverInfo.ServerStateId !=

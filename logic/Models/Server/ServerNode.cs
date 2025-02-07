@@ -3,6 +3,7 @@ using Logic.Models.Args;
 using Logic.Models.Client;
 using Logic.Models.Cluster;
 using Logic.Models.Server.Election;
+using Logic.Models.Server.Logging;
 
 namespace Logic.Models.Server;
 
@@ -13,6 +14,7 @@ public class ServerNode : IServerNode
   public int Id => _serverData.Id;
   public ServerNodeState State => _serverData.State;
   public uint Term => _serverData.Term;
+  public LogInfo LogInformation => _serverData.LogInformation;
   ElectionHandler _electionHandler = null!;
   IEnumerable<IClientNode> _knownClients;
 

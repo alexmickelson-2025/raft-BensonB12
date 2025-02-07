@@ -6,7 +6,7 @@ namespace Logic.Models.Server;
 
 public class ServerData
 {
-  Logs _logs = [];
+  Logs _logs = new();
   public int VotesInFavorForServer { get; set; } = 1;
   public int VotesNotInFavorForServer { get; set; } = 0;
   public int Id { get; }
@@ -15,6 +15,7 @@ public class ServerData
   public uint Term { get; set; } = 0;
   public int NextIndex => _logs.NextIndex;
   public Dictionary<uint, bool> HasVotedInTerm { get; set; } = new() { { 0, false } };
+  public LogInfo LogInformation => new() { LocalLogs = _logs.Local, CommittedLogs = _logs.Committed };
 
   public ServerData(int? id = null)
   {
