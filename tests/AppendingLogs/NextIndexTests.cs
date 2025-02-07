@@ -14,10 +14,11 @@ public class LogTests
   public void WhenAServerIsNewItsLogIsEmpty()
   {
     // Given
-    LogHandler logHandler = new([]);
+    Logs logs = new();
 
     // When & Then
-    logHandler.Messages.Should().BeEmpty();
+    logs.Committed.Count.Should().Be(0);
+    logs.Local.Count.Should().Be(0);
   }
 
   /// <summary>
