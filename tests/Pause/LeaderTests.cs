@@ -24,6 +24,7 @@ public class LeaderTests
     // When
     while (leaderServer.State != ServerNodeState.LEADER)
     {
+      Thread.Sleep(50);
       // Wait
     }
 

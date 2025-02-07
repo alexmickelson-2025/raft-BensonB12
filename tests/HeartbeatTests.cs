@@ -73,6 +73,7 @@ public class HeartbeatTests
     // When
     while (candidateServer.State == ServerNodeState.FOLLOWER)
     {
+      Thread.Sleep(50);
       // Do I do something here?
     }
 

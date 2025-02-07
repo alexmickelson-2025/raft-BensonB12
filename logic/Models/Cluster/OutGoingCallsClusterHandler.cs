@@ -35,6 +35,7 @@ public class OutGoingCallsClusterHandler
     while (thereAreNotEnoughVotes() && theElectionIsStillGoing)
     {
       // Wait for calls
+      Thread.Sleep(50);
     }
   }
 
