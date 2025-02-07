@@ -2,54 +2,101 @@
 @using Logic.Models.Args;
 @using Logic.Models.Server
 @using Logic.Models.Server.Logging
+@using Logic.Utils
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container mt-4">
+  <div class="h-3 fw-bold">Time Values</div>
+  <p class="text-muted">
+    Election Timer Range: <strong>@Constants.INCLUSIVE_MINIMUM_ELECTION_INTERVAL</strong> to
+    <strong>@Constants.EXCLUSIVE_MAXIMUM_ELECTION_INTERVAL</strong>
+  </p>
+  <p class="text-muted">
+    HeartBeats take <strong>@Constants.HEARTBEAT_PAUSE</strong>
+  </p>
 
-@foreach (string url in Urls)
-{
-  <div>@url</div>
-}
+  <hr>
 
-<br>
+  <h5 class="mt-3">Server URLs</h5>
+  <ul class="list-group mb-4">
+    @foreach (string url in Urls)
+    {
+      <li class="list-group-item">@url</li>
+    }
+  </ul>
 
-@foreach (ServerInfo serverInfo in servers)
-{
-  <div>Server Id: @serverInfo.Id</div>
-  <div>Server Term: @serverInfo.Term</div>
-  <div>Local Logs</div>
+  <div class="row">
+    @foreach (ServerInfo serverInfo in servers)
+    {
+      <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Server ID: @serverInfo.Id</h5>
+            <p class="card-text">Term: <strong>@serverInfo.Term</strong></p>
+            <p class="text-muted">State: <strong>@((ServerNodeState)serverInfo.ServerStateId)</strong></p>
 
-  @foreach (LogData logData in serverInfo.LogInfo.LocalLogs)
-  {
-    <div>Index: @logData.Index</div>
-    <div>Term: @logData.Term</div>
-    <div>Message: @logData.Log</div>
-  }
+            <h6>Local Logs</h6>
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Index</th>
+                  <th>Term</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (LogData logData in serverInfo.LogInfo.LocalLogs)
+                {
+                  <tr>
+                    <td>@logData.Index</td>
+                    <td>@logData.Term</td>
+                    <td>@logData.Log</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
 
-  <div>Committed Logs (State Machine)</div>
+            <h6>Committed Logs (State Machine)</h6>
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Index</th>
+                  <th>Term</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (LogData logData in serverInfo.LogInfo.CommittedLogs)
+                {
+                  <tr>
+                    <td>@logData.Index</td>
+                    <td>@logData.Term</td>
+                    <td>@logData.Log</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
 
-  @foreach (LogData logData in serverInfo.LogInfo.CommittedLogs)
-  {
-    <div>Index: @logData.Index</div>
-    <div>Term: @logData.Term</div>
-    <div>Message: @logData.Log</div>
-  }
+            <div class="d-flex justify-content-between mt-3">
+              <button @onclick=@(async () => await PauseServer(serverInfo)) class="btn btn-warning">Pause</button>
+              <button @onclick=@(async () => await UnpauseServer(serverInfo)) class="btn btn-info"
+                disabled="@(serverInfo.ServerStateId != 3)">Unpause</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
 
-  <div>Server State: @((ServerNodeState)serverInfo.ServerStateId)</div>
-  <button @onclick=@(async () => await PauseServer(serverInfo)) class="btn-warning">Pause</button>
-  <button @onclick=@(async () => await UnpauseServer(serverInfo)) class="btn-info" disabled=@(serverInfo.ServerStateId !=
-  3)>Unpause</button>
-}
+  <hr>
 
-<br>
-
-<input type="text" @bind-value=inputLog>
-<button @onclick=SubmitLog>Submit Log</button>
-
-@* <button @onclick=@(async () => await PauseAllServers()) class="btn-danger">Pause all</button>
-<button @onclick=@(async () => await UnpauseAllServers()) class="btn-info">Unpause all</button> *@
+  <div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Enter log" @bind-value=inputLog>
+    <button @onclick=SubmitLog class="btn btn-primary">Submit Log</button>
+  </div>
+</div>
 
 @code {
   string inputLog = "";
@@ -125,7 +172,7 @@
   {
     ServerInfo? leader = servers.FirstOrDefault((server) => server.ServerStateId == 2);
 
-    if (leader is null)
+    if (leader is null || inputLog is null)
     {
       return;
     }
@@ -133,5 +180,6 @@
     RPCFromClientArgs args = new(0, log: inputLog);
     string serverUrl = Urls[servers.IndexOf(leader)];
     await http.PostAsJsonAsync(serverUrl + "/from/client", args);
+    inputLog = "";
   }
 }
