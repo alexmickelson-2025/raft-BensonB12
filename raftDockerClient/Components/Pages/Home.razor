@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Logic.Models.Args;
 @using Logic.Models.Server
 @rendermode InteractiveServer
 
@@ -11,12 +12,22 @@
   <div>@url</div>
 }
 
+<br>
+
 @foreach (ServerInfo serverInfo in servers)
 {
   <div>Server Id: @serverInfo.Id</div>
   <div>Server Term: @serverInfo.Term</div>
   <div>Server State: @((ServerNodeState)serverInfo.ServerStateId)</div>
+  <button @onclick=@(async () => await PauseServer(serverInfo)) class="btn-warning">Pause</button>
+  <button @onclick=@(async () => await UnpauseServer(serverInfo)) class="btn-info" disabled=@(serverInfo.ServerStateId !=
+  3)>Unpause</button>
 }
+
+<br>
+
+<button @onclick=@(async () => await PauseAllServers()) class="btn-danger">Pause all</button>
+<button @onclick=@(async () => await UnpauseAllServers()) class="btn-info">Unpause all</button>
 
 @code {
   HttpClient http = new HttpClient();
@@ -56,4 +67,34 @@
   {
     timer?.Dispose();
   }
-} using Logic.Models.Server;
+
+  public async Task PauseServer(ServerInfo serverInfo)
+  {
+    RPCFromClientArgs args = new(serverInfo.Id, serverShouldBePaused: true);
+    string serverUrl = Urls[servers.IndexOf(serverInfo)];
+    await http.PostAsJsonAsync(serverUrl + "/from/client", args);
+  }
+
+  public async Task PauseAllServers()
+  {
+    foreach (ServerInfo serverInfo in servers)
+    {
+      await PauseServer(serverInfo);
+    }
+  }
+
+  public async Task UnpauseServer(ServerInfo serverInfo)
+  {
+    RPCFromClientArgs args = new(serverInfo.Id, serverShouldBePaused: false);
+    string serverUrl = Urls[servers.IndexOf(serverInfo)];
+    await http.PostAsJsonAsync(serverUrl + "/from/client", args);
+  }
+
+  public async Task UnpauseAllServers()
+  {
+    foreach (ServerInfo serverInfo in servers)
+    {
+      await UnpauseServer(serverInfo);
+    }
+  }
+}
