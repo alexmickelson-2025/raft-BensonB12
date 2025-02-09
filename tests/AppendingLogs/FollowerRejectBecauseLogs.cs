@@ -13,20 +13,22 @@ public class FollowerRejectBecauseLogs
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
   /// Testing Logs #15
   /// </summary>
-  [Fact]
-  public void FollowerRefusesRPCFromLeaderIfRPCDoesNotHaveALogWithTheSameIndexAndTermThenRefusesTheNewEntries()
-  {
-    // Given
+  // [Fact]
+  // public void FollowerRefusesRPCFromLeaderIfRPCDoesNotHaveALogWithTheSameIndexAndTermThenRefusesTheNewEntries()
+  // {
+  //   // Given
 
-    // When
+  //   // When
 
-    // Then
-  }
+  //   // Then
+  //   Assert.Fail();
+  // }
 
   /// <summary>
   /// Testing Logs #19
@@ -39,6 +41,7 @@ public class FollowerRejectBecauseLogs
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
@@ -52,5 +55,6 @@ public class FollowerRejectBecauseLogs
     // When
 
     // Then
+    Assert.Fail();
   }
 }

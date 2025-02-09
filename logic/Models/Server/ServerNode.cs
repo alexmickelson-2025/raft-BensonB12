@@ -67,6 +67,11 @@ public class ServerNode : IServerNode
     _clusterHandler.ClusterLeaderId = args.LeaderId;
     _electionHandler.RestartElectionTimeout();
 
+    if (args.NewLogs.Count > 0)
+    {
+      _serverData.AddToLocalMemory(args.NewLogs[0].Term, args.NewLogs[0].Log);
+    }
+
     ServerNodeState oldState = _serverData.State;
     _serverData.SetState(ServerNodeState.FOLLOWER);
     // Maybe I should validate that the serverNodeId is in my cluster

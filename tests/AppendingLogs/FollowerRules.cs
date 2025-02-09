@@ -16,6 +16,7 @@ public class FollowerRules
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
@@ -29,6 +30,7 @@ public class FollowerRules
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
@@ -42,6 +44,7 @@ public class FollowerRules
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
@@ -55,6 +58,7 @@ public class FollowerRules
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>

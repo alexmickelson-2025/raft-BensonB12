@@ -1,5 +1,6 @@
 using Logic.Models.Args;
 using Logic.Models.Server;
+using Logic.Models.Server.Logging;
 using Logic.Utils;
 
 namespace Logic.Models.Cluster;
@@ -136,7 +137,7 @@ public class OutGoingCallsClusterHandler
           previousLogIndex: _clusterData.LogHandler.PreviousLogIndex,
           previousLogTerm: _clusterData.LogHandler.PreviousLogTerm,
           leadersLastCommitIndex: _clusterData.ServerData.NextIndex,
-          newLogs: []
+          newLogs: [new LogData(_clusterData.ServerData.Term, log, _clusterData.LogHandler.NextIndex)]
       );
 
     foreach (IServerNode server in _clusterData.OtherServersInCluster)

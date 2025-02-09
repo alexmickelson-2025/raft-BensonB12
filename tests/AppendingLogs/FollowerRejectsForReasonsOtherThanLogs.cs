@@ -8,15 +8,16 @@ public class FollowerRefusal
   /// <summary>
   /// Testing Logs #15
   /// </summary>
-  [Fact]
-  public void FollowerRefusesRPCFromLeaderIfRPCDoesNotHaveTheSameTerm()
-  {
-    // Given
+  // [Fact]
+  // public void FollowerRefusesRPCFromLeaderIfRPCDoesNotHaveTheSameTerm()
+  // {
+  //   // Given
 
-    // When
+  //   // When
 
-    // Then
-  }
+  //   // Then
+  //   Assert.Fail();
+  // }
 
   /// <summary>
   /// Testing Logs #15
@@ -29,5 +30,6 @@ public class FollowerRefusal
     // When
 
     // Then
+    Assert.Fail();
   }
 }

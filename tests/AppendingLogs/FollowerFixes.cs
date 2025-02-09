@@ -66,6 +66,7 @@ public class FollowerFixes
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
@@ -79,5 +80,6 @@ public class FollowerFixes
     // When
 
     // Then
+    Assert.Fail();
   }
 }

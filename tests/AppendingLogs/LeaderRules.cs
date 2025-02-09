@@ -5,15 +5,16 @@ public class LeaderRules
   /// <summary>
   /// Testing Logs #15
   /// </summary>
-  [Fact]
-  public void WhenSendingAnRPCFromLeaderItIncludesTheIndexAndTermOfTheEntryInItsLogThatIsImmediatelyBeforeTheNewEntries()
-  {
-    // Given
+  // [Fact]
+  // public void WhenSendingAnRPCFromLeaderItIncludesTheIndexAndTermOfTheEntryInItsLogThatIsImmediatelyBeforeTheNewEntries()
+  // {
+  //   // Given
 
-    // When
+  //   // When
 
-    // Then
-  }
+  //   // Then
+  //   Assert.Fail();
+  // }
 
   /// <summary>
   /// Testing Logs #13
@@ -26,6 +27,7 @@ public class LeaderRules
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
@@ -39,6 +41,7 @@ public class LeaderRules
     // When
 
     // Then
+    Assert.Fail();
   }
 
   /// <summary>
@@ -52,5 +55,6 @@ public class LeaderRules
     // When
 
     // Then
+    Assert.Fail();
   }
 }
